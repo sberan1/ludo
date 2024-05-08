@@ -16,11 +16,11 @@
 
 
     <dependencies>
-        <dependency>
+       <!-- <dependency>
             <groupId>cz.vse.4it353.lab03.sockets</groupId>
             <artifactId>api</artifactId>
             <version>1.0.0-SNAPSHOT</version>
-        </dependency>
+        </dependency> -->
 
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -59,7 +59,7 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
                 <configuration>
-                    <mainClass>Main</mainClass>
+                    <mainClass>cz.vse.java4it353.client.Main</mainClass>
                 </configuration>
             </plugin>
         </plugins>
