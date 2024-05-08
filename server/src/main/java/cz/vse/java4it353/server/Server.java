@@ -1,5 +1,8 @@
 package cz.vse.java4it353.server;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -20,6 +23,8 @@ public class Server {
     private boolean isRunning;
     private final ExecutorService clientHandlingPool;
     private final List<Socket> clientSockets; // Track active client sockets
+    private static final Logger log = LoggerFactory.getLogger(Main.class);
+
 
     public Server(int port) {
         this.port = port;
@@ -40,13 +45,13 @@ public class Server {
                     clientHandlingPool.execute(() -> handleClient(clientSocket));
                 } catch (SocketException se) {
                     if (serverSocket.isClosed()) {
-                        System.out.println("Server socket closed, stopping server.");
+                        log.info("Server socket closed, stopping server.");
                         break;
                     }
                 }
             }
         } catch (IOException e) {
-            System.out.println("Error starting server: " + e.getMessage());
+            log.error("Error starting server: " + e.getMessage());
         } finally {
             stop();
         }
@@ -63,17 +68,17 @@ public class Server {
                     if (command != null) {
                         command.execute();
                     } else {
-                        System.out.println("Unknown command.");
+                        log.error("Unknown command.");
                     }
                 }
         } catch (IOException e) {
-            System.out.println("Error handling client: " + e.getMessage());
+            log.error("Error handling client: " + e.getMessage());
         } finally {
             try {
                 clientSocket.close();
                 clientSockets.remove(clientSocket);
             } catch (IOException e) {
-                System.out.println("Error closing client socket: " + e.getMessage());
+                log.error("Error closing client socket: " + e.getMessage());
             }
         }
     }
