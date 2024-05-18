@@ -1,5 +1,7 @@
-package cz.vse.java4it353.server;
+package cz.vse.java4it353.server.logic;
 
+import cz.vse.java4it353.server.Main;
+import cz.vse.java4it353.server.commands.ICommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,15 +60,16 @@ public class Server {
     }
 
     private void handleClient(Socket clientSocket) {
-        CommandFactory commandFactory = new CommandFactory(clientSocket, serverSocket);
+        CommandFactory commandFactory = new CommandFactory(clientSocket, serverSocket, clientSockets); //TODO: transfer more data
         try (BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
              PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
 
             String inputLine;
                 while ((inputLine = in.readLine()) != null) {
-                    ICommand command = commandFactory.getCommand(inputLine);
+                    String[] input = inputLine.split(" ");
+                    ICommand command = commandFactory.getCommand(input[0]);
                     if (command != null) {
-                        command.execute();
+                        out.println(command.execute(input [1]));
                     } else {
                         log.error("Unknown command.");
                     }
