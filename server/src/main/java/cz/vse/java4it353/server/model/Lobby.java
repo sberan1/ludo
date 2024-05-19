@@ -3,6 +3,8 @@ package cz.vse.java4it353.server.model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+
 public class Lobby {
     private String name;
     private boolean isStarted = false;
@@ -33,7 +35,12 @@ public class Lobby {
         this.players = players;
     }
 
-    public void addPlayer(Player player) {
+    public void addPlayer(Player player) throws IllegalArgumentException{
+       boolean isPlayerAlreadyInLobby = Arrays.stream(players).anyMatch(p -> p == player);
+       if (isPlayerAlreadyInLobby) {
+           logger.warn("Player is already in the lobby");
+           throw new IllegalArgumentException("Player is already in the lobby");
+       }
         for (int i = 0; i < MAX_PLAYERS; i++) {
             if (players[i] == null) {
                 players[i] = player;

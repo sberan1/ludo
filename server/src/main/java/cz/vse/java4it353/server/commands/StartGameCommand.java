@@ -7,10 +7,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.Socket;
-import java.util.Arrays;
 
 public class StartGameCommand implements ICommand{
-    private Socket clientSocket;
+    private final Socket clientSocket;
     private static final Logger logger = LoggerFactory.getLogger(StartGameCommand.class);
     ObjectMapper mapper = new ObjectMapper();
 
