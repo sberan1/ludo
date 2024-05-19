@@ -5,17 +5,18 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.vse.java4it353.server.model.Lobby;
 import cz.vse.java4it353.server.model.Player;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 
 public class Game {
     private static Game instance = null;
-    Logger logger = Logger.getLogger(Game.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(Game.class);
     Map<String, Lobby> lobbies;
     Map<String, Player> players;
     ObjectMapper mapper = new ObjectMapper();
@@ -73,7 +74,7 @@ public class Game {
         try {
             return mapper.writeValueAsString(lobbies);
         } catch (JsonProcessingException e) {
-            logger.log(Level.SEVERE, e.getMessage());
+            logger.error(e.getMessage());
             return "error while serializing lobbies to JSON";
         }
     }

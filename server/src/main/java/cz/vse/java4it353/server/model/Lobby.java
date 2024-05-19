@@ -1,17 +1,20 @@
 package cz.vse.java4it353.server.model;
 
-import cz.vse.java4it353.server.model.Player;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Lobby {
-    String name;
-    private static final int MAX_PLAYERS = 4;
-    private static final int MIN_PLAYERS = 2;
+    private String name;
+    private boolean isStarted = false;
+    public static final int MAX_PLAYERS = 4;
+    public static final int MIN_PLAYERS = 2;
     private Player[] players = new Player[MAX_PLAYERS];
-    private Board board;
+    private static final Logger logger = LoggerFactory.getLogger(Lobby.class);
+    private Board boardState;
 
     public Lobby(String name) {
         this.name = name;
-        this.board = new Board();
+        this.boardState = new Board();
     }
 
     public String getName() {
@@ -29,6 +32,7 @@ public class Lobby {
     public void setPlayers(Player[] players) {
         this.players = players;
     }
+
     public void addPlayer(Player player) {
         for (int i = 0; i < MAX_PLAYERS; i++) {
             if (players[i] == null) {
@@ -37,4 +41,32 @@ public class Lobby {
             }
         }
     }
+
+    public boolean isStarted() {
+        return isStarted;
+    }
+
+    public void setStarted(boolean started) throws IllegalStateException{
+        int playerCount = (int) java.util.Arrays.stream(this.getPlayers()).filter(java.util.Objects::nonNull).count();
+        if (started && playerCount >= MIN_PLAYERS) {
+            isStarted = true;
+        }
+        else if (!started) {
+            isStarted = false;
+        }
+        else {
+            isStarted = false;
+            logger.warn("Not enough players to start the game");
+            throw new IllegalStateException("Not enough players to start the game");
+        }
+    }
+
+    public Board getBoardState() {
+        return boardState;
+    }
+
+    public void setBoardState(Board boardState) {
+        this.boardState = boardState;
+    }
+
 }

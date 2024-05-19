@@ -66,17 +66,24 @@ public class Server {
 
             String inputLine;
                 while ((inputLine = in.readLine()) != null) {
-                    String[] input = inputLine.split(" ");
+                    String[] input = inputLine.split(" ", 2);
                     ICommand command = commandFactory.getCommand(input[0]);
                     if (command != null) {
-                        out.println(command.execute(input [1]));
+                        try {
+                            out.println(command.execute(input[1]));
+                        } catch (Exception e) {
+                            log.error("Error executing command: " + e.getMessage());
+                            out.println("E " + e.getMessage());
+                        }
                     } else {
                         log.error("Unknown command.");
+                        out.println("E Unknown command");
                     }
                 }
         } catch (IOException e) {
             log.error("Error handling client: " + e.getMessage());
-        } finally {
+        }
+        finally {
             try {
                 clientSocket.close();
                 clientSockets.remove(clientSocket);

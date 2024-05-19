@@ -2,10 +2,11 @@ package cz.vse.java4it353.server.commands;
 
 import cz.vse.java4it353.server.model.Player;
 import cz.vse.java4it353.server.logic.Game;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 import java.net.Socket;
-import java.util.logging.Logger;
 
 /**
  * Takes name of the player and creates a new player with that name
@@ -13,7 +14,7 @@ import java.util.logging.Logger;
  */
 public class LoginCommand implements ICommand {
     private Socket clientSocket;
-    Logger logger = Logger.getLogger(LoginCommand.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(LoginCommand.class);
 
     public LoginCommand(Socket clientSocket) {
         this.clientSocket = clientSocket;
