@@ -70,6 +70,18 @@ public class Game {
         }
         return null;
     }
+
+    public Lobby getLobbyWithPlayer(Socket clientSocket) {
+        for (Lobby lobby : lobbies.values()) {
+            for (Player player : lobby.getPlayers()) {
+                if (player != null && player.getClientSocket() == clientSocket) {
+                    return lobby;
+                }
+            }
+        }
+        return null;
+    }
+
     public String JSONLobbies() {
         try {
             return mapper.writeValueAsString(lobbies);

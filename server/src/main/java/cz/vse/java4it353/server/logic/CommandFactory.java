@@ -21,6 +21,8 @@ public class CommandFactory {
         commandMap.put("J", new JoinLobbyCommand(clientSocket));
         commandMap.put("S", new StartGameCommand(clientSocket));
         commandMap.put("CC", new ChooseColorCommand(clientSocket));
+        commandMap.put("R", new RollDiceCommand(clientSocket));
+        //commandMap.put("M", new MoveCommand(clientSocket));
     }
 
     public ICommand getCommand(String commandKey) {

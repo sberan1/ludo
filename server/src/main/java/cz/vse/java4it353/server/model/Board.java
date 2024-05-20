@@ -6,9 +6,15 @@ import cz.vse.java4it353.server.enums.ColorEnum;
 import cz.vse.java4it353.server.exception.IncorrectlyDefinedArgumentException;
 
 public class Board {
+    public Map<ColorEnum, Player> getPlayerMap() {
+        return playerMap;
+    }
+
     private static final int BOARD_SIZE = 44;
     private int DiceValue;
     private final Map<ColorEnum, Player> playerMap = new HashMap<>();
+    private Player playerOnTurn;
+
 
     public void setPlayer(Player player, ColorEnum color) throws IncorrectlyDefinedArgumentException {
         playerMap.values().remove(player);
@@ -18,9 +24,6 @@ public class Board {
         }
         playerMap.put(color, player);
     }
-
-    private Player playerOnTurn;
-
     public int rollDice() {
         return (int) (Math.random() * 6) + 1;
     }
@@ -40,4 +43,37 @@ public class Board {
     public void setPlayerOnTurn(Player playerOnTurn) {
         this.playerOnTurn = playerOnTurn;
     }
+
+    public void nextPlayerOnTurn() {
+        ColorEnum currentColor = null;
+        if (playerOnTurn != null) {
+            for (Map.Entry<ColorEnum, Player> entry : playerMap.entrySet()) {
+                if (entry.getValue().equals(playerOnTurn)) {
+                    currentColor = entry.getKey();
+                    break;
+                }
+            }
+        }
+
+        ColorEnum[] colors = ColorEnum.values();
+        for (int i = 0; i < colors.length; i++) {
+            if (currentColor == colors[i]) {
+                for (int j = 1; j <= colors.length; j++) {
+                    ColorEnum nextColor = colors[(i + j) % colors.length];
+                    if (playerMap.get(nextColor) != null) {
+                        playerOnTurn = playerMap.get(nextColor);
+                        return;
+                    }
+                }
+            }
+        }
+
+        for (ColorEnum color : colors) {
+            if (playerMap.get(color) != null) {
+                playerOnTurn = playerMap.get(color);
+                return;
+            }
+        }
+    }
+
 }

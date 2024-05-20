@@ -3,6 +3,8 @@ package cz.vse.java4it353.server.model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Arrays;
 
 public class Lobby {
@@ -56,6 +58,13 @@ public class Lobby {
     public void setStarted(boolean started) throws IllegalStateException{
         int playerCount = (int) java.util.Arrays.stream(this.getPlayers()).filter(java.util.Objects::nonNull).count();
         if (started && playerCount >= MIN_PLAYERS) {
+            for (Player player : this.getPlayers()) {
+                if (player != null && !this.boardState.getPlayerMap().containsValue(player)) {
+                    logger.warn("Player does not have a set color");
+                    throw new IllegalStateException("Player does not have a set color");
+                }
+            }
+            this.boardState.nextPlayerOnTurn();
             isStarted = true;
         }
         else if (!started) {
@@ -65,6 +74,17 @@ public class Lobby {
             isStarted = false;
             logger.warn("Not enough players to start the game");
             throw new IllegalStateException("Not enough players to start the game");
+        }
+    }
+
+    public void sendMessageToAllPlayers(String message) {
+        for (Player player : players) {
+            try {
+                PrintWriter out = new PrintWriter(player.getClientSocket().getOutputStream(), true);
+                out.println(message);
+            } catch (IOException e) {
+                System.out.println("Error sending message to player: " + e.getMessage());
+            }
         }
     }
 

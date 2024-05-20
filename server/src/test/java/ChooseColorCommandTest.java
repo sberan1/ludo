@@ -58,6 +58,7 @@ public class ChooseColorCommandTest {
         game.addPlayer(player);
         game.addLobby(lobby);
         player.setClientSocket(socket);
+        //assertEquals(command.execute("GREEN")," ");
         assertNotNull(command.execute("GREEN"));
     }
 }
