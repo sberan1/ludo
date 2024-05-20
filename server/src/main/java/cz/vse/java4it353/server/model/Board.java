@@ -2,6 +2,8 @@ package cz.vse.java4it353.server.model;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import cz.vse.java4it353.server.enums.ColorEnum;
 import cz.vse.java4it353.server.exception.IncorrectlyDefinedArgumentException;
 
@@ -10,11 +12,20 @@ public class Board {
         return playerMap;
     }
 
-    private static final int BOARD_SIZE = 44;
+    public static final int BOARD_SIZE = 44;
     private int DiceValue;
     private final Map<ColorEnum, Player> playerMap = new HashMap<>();
     private Player playerOnTurn;
+    @JsonIgnore
+    private boolean hasPlayerRolled = false;
 
+    public boolean hasPlayerRolled() {
+        return hasPlayerRolled;
+    }
+
+    public void setHasPlayerRolled(boolean hasPlayerRolled) {
+        this.hasPlayerRolled = hasPlayerRolled;
+    }
 
     public void setPlayer(Player player, ColorEnum color) throws IncorrectlyDefinedArgumentException {
         playerMap.values().remove(player);
@@ -25,6 +36,7 @@ public class Board {
         playerMap.put(color, player);
     }
     public int rollDice() {
+        hasPlayerRolled = true;
         return (int) (Math.random() * 6) + 1;
     }
 
@@ -45,6 +57,7 @@ public class Board {
     }
 
     public void nextPlayerOnTurn() {
+        hasPlayerRolled = false;
         ColorEnum currentColor = null;
         if (playerOnTurn != null) {
             for (Map.Entry<ColorEnum, Player> entry : playerMap.entrySet()) {

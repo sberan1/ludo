@@ -4,9 +4,9 @@ public class Token {
 
     private int position;
 
-    public Token move(int steps) {
+    public int move(int steps) {
         position += steps;
-        return this;
+        return position;
     }
 
     public int getPosition() {

@@ -44,8 +44,18 @@ public class Player {
     public Token[] getTokens() {
         return tokens;
     }
-    public void moveToken(int tokenIndex, int steps) {
-        tokens[tokenIndex].move(steps);
+    public void moveToken(int tokenIndex, int steps, Lobby lobby) {
+        int newPosition = tokens[tokenIndex].move(steps);
+
+        for (Player otherPlayer : lobby.getPlayers()) {
+            if (otherPlayer != this && otherPlayer != null) {
+                for (Token otherToken : otherPlayer.getTokens()) {
+                    if (otherToken.getPosition() == newPosition) {
+                        otherToken.setPosition(0);
+                    }
+                }
+            }
+        }
     }
 
     public Map<Integer, Token> getMovableTokens(int diceValue) {
@@ -60,10 +70,21 @@ public class Player {
 
     private boolean canMove(Token token, int diceValue) {
         if (token.getPosition() == 0) {
-            // The token can only move from the start if the dice roll is 6
             return diceValue == 6;
         } else {
-            // If the token is not at the start, it can move to any position
+            int newPosition = token.getPosition() + diceValue;
+            boolean overflew = newPosition > Board.BOARD_SIZE;
+
+            if (!overflew) {
+                return false;
+            }
+
+            for (Token t : tokens) {
+                if (t.getPosition() == newPosition) {
+                    return false;
+                }
+            }
+
             return true;
         }
     }
