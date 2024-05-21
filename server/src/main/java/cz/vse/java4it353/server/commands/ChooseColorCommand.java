@@ -53,7 +53,7 @@ public class ChooseColorCommand implements ICommand {
             }
 
             lobby.getBoardState().setPlayer(player, color);
-            return mapper.writeValueAsString(lobby);
+            return "J " + mapper.writeValueAsString(lobby);
 
         }
         catch (IllegalArgumentException e) {

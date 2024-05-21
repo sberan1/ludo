@@ -1,12 +1,13 @@
 package cz.vse.java4it353.server.commands;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.vse.java4it353.server.logic.Game;
 import cz.vse.java4it353.server.model.Lobby;
 import cz.vse.java4it353.server.model.Player;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.List;
 
@@ -14,13 +15,14 @@ import java.util.List;
 public class CreateLobbyCommand implements ICommand{
     List<Socket> clientSockets;
     Socket clientSocket;
+    ObjectMapper mapper = new ObjectMapper();
     private static final Logger logger = LoggerFactory.getLogger(CreateLobbyCommand.class);
     public CreateLobbyCommand(Socket clientSocket, List<Socket> clientSockets){
         this.clientSocket = clientSocket;
         this.clientSockets = clientSockets;
     }
     @Override
-    public String execute(String data) {
+    public String execute(String data) throws Exception {
         Lobby lobby = new Lobby(data);
         Game game = Game.getInstance();
         game.addLobby(lobby);
@@ -39,14 +41,7 @@ public class CreateLobbyCommand implements ICommand{
             return "error while creating lobby";
         }
         String lobbies = game.JSONLobbies();
-        clientSockets.forEach(socket -> {
-            try {
-                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-                out.println(lobbies);
-            } catch (Exception e) {
-                logger.warn("error while sending lobby info to " + socket + " " + e.getMessage());
-            }
-        });
-        return lobbies;
+        game.notifyPlayers(lobbies, clientSockets);
+        return "J " + mapper.writeValueAsString(lobby);
     }
 }

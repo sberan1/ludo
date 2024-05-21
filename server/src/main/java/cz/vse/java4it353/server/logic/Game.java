@@ -8,6 +8,7 @@ import cz.vse.java4it353.server.model.Player;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.List;
@@ -89,5 +90,16 @@ public class Game {
             logger.error(e.getMessage());
             return "error while serializing lobbies to JSON";
         }
+    }
+
+    public void notifyPlayers(String data, List<Socket> clientSockets) {
+        clientSockets.forEach(socket -> {
+            try {
+                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+                out.println(data);
+            } catch (Exception e) {
+                logger.warn("error while sending lobby info to " + socket + " " + e.getMessage());
+            }
+        });
     }
 }

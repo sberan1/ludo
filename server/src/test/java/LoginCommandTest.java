@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.net.Socket;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -12,7 +13,8 @@ public class LoginCommandTest {
     @Test
     public void testExecute() {
         Socket mockSocket = new Socket(); // Create a mock socket
-        LoginCommand loginCommand = new LoginCommand(mockSocket);
+        List<Socket> clientSockets = List.of(mockSocket);
+        LoginCommand loginCommand = new LoginCommand(mockSocket, clientSockets);
         String testName = "TestPlayer";
         loginCommand.execute(testName);
 

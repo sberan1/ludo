@@ -1,6 +1,9 @@
 package cz.vse.java4it353.server.commands;
 
 import cz.vse.java4it353.server.model.Player;
+
+import java.io.PrintWriter;
+import java.util.List;
 import cz.vse.java4it353.server.logic.Game;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,10 +16,11 @@ import java.net.Socket;
  *
  */
 public class LoginCommand implements ICommand {
+    List<Socket> clientSockets;
     private Socket clientSocket;
     private static final Logger logger = LoggerFactory.getLogger(LoginCommand.class);
 
-    public LoginCommand(Socket clientSocket) {
+    public LoginCommand(Socket clientSocket, List<Socket> clientSockets) {
         this.clientSocket = clientSocket;
     }
 
@@ -34,6 +38,8 @@ public class LoginCommand implements ICommand {
         Game game = Game.getInstance();
         game.addPlayer(player);
         logger.info("Player " + player.getName() + " has logged in");
-        return game.JSONLobbies();
+        String lobbies = game.JSONLobbies();
+        game.notifyPlayers(lobbies, clientSockets);
+        return "L " + lobbies;
     }
 }
