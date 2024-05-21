@@ -1,6 +1,7 @@
 package cz.vse.java4it353.server.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import cz.vse.java4it353.server.enums.ColorEnum;
 
 import java.net.Socket;
 import java.util.ArrayList;
@@ -47,13 +48,20 @@ public class Player {
     public void moveToken(int tokenIndex, int steps, Lobby lobby) {
         int newPosition = tokens[tokenIndex].move(steps);
 
-        for (Player otherPlayer : lobby.getPlayers()) {
-            if (otherPlayer != this && otherPlayer != null) {
-                for (Token otherToken : otherPlayer.getTokens()) {
-                    if (otherToken.getPosition() == newPosition) {
-                        otherToken.setPosition(0);
-                    }
-                }
+        for (ColorEnum color : lobby.getBoardState().getPlayerMap().keySet()) {
+            switch (color) {
+                case RED:
+                    checkCollision(lobby.getBoardState().getPlayerMap().get(ColorEnum.RED), newPosition);
+                    break;
+                case YELLOW:
+                    checkCollision(lobby.getBoardState().getPlayerMap().get(ColorEnum.GREEN), newPosition-10);
+                    break;
+                case BLUE:
+                    checkCollision(lobby.getBoardState().getPlayerMap().get(ColorEnum.BLUE), newPosition-20);
+                    break;
+                case GREEN:
+                    checkCollision(lobby.getBoardState().getPlayerMap().get(ColorEnum.YELLOW), newPosition-30);
+                    break;
             }
         }
     }
@@ -86,6 +94,16 @@ public class Player {
             }
 
             return true;
+        }
+    }
+
+    private void checkCollision(Player otherPlayer, int newPosition) {
+        if (otherPlayer != this && otherPlayer != null) {
+            for (Token otherToken : otherPlayer.getTokens()) {
+                if (otherToken.getPosition() == newPosition) {
+                    otherToken.setPosition(0);
+                }
+            }
         }
     }
 }
