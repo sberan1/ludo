@@ -1,5 +1,6 @@
 package cz.vse.java4it353.server.commands;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.vse.java4it353.server.logic.Game;
 import cz.vse.java4it353.server.model.Lobby;
 import cz.vse.java4it353.server.model.Player;
@@ -10,13 +11,14 @@ import java.util.logging.Logger;
 public class JoinLobbyCommand implements ICommand {
     private Socket clientSocket;
     Logger logger = Logger.getLogger(JoinLobbyCommand.class.getName());
+    ObjectMapper mapper = new ObjectMapper();
 
     public JoinLobbyCommand(Socket clientSocket) {
         this.clientSocket = clientSocket;
     }
 
     @Override
-    public String execute(String data) {
+    public String execute(String data) throws Exception {
         Game game = Game.getInstance();
         Lobby lobby = game.getLobby(data);
 
@@ -33,6 +35,6 @@ public class JoinLobbyCommand implements ICommand {
         }
 
         lobby.addPlayer(player);
-        return game.JSONLobbies();
+        return "J " + mapper.writeValueAsString(lobby);
     }
 }

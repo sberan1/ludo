@@ -32,7 +32,7 @@ public class StartGameCommand implements ICommand{
             }
             if (player.getClientSocket() == clientSocket) {
                 lobby.setStarted(true);
-                return mapper.writeValueAsString(lobby);
+                return "B " + mapper.writeValueAsString(lobby.getBoardState());
             }
         }
         logger.warn("Player not found in lobby");

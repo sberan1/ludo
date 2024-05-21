@@ -29,7 +29,7 @@ public class MoveTokenCommand implements ICommand {
         player.moveToken(tokenIndex, board.getDiceValue(), lobby);
         board.nextPlayerOnTurn();
 
-        return mapper.writeValueAsString(lobby.getBoardState());
+        return "B " + mapper.writeValueAsString(lobby.getBoardState());
     }
 
     private void validateCommand(Board board, Player player, String data) throws ForbiddenMoveException {
