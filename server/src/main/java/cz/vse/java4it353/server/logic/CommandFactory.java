@@ -22,7 +22,7 @@ public class CommandFactory {
         commandMap.put("S", new StartGameCommand(clientSocket));
         commandMap.put("CC", new ChooseColorCommand(clientSocket));
         commandMap.put("R", new RollDiceCommand(clientSocket));
-        //commandMap.put("M", new MoveCommand(clientSocket));
+        commandMap.put("M", new MoveTokenCommand(clientSocket));
     }
 
     public ICommand getCommand(String commandKey) {
