@@ -3,6 +3,7 @@ package cz.vse.java4it353.server.logic;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cz.vse.java4it353.server.enums.ColorEnum;
 import cz.vse.java4it353.server.model.Lobby;
 import cz.vse.java4it353.server.model.Player;
 import org.slf4j.Logger;
@@ -20,6 +21,7 @@ public class Game {
     private static final Logger logger = LoggerFactory.getLogger(Game.class);
     Map<String, Lobby> lobbies;
     Map<String, Player> players;
+    public static Map<ColorEnum, Integer> offset = new HashMap<>();
     ObjectMapper mapper = new ObjectMapper();
 
 
@@ -31,6 +33,10 @@ public class Game {
     public static Game getInstance() {
         if (instance == null) {
             instance = new Game();
+            offset.put(ColorEnum.RED, 0);
+            offset.put(ColorEnum.YELLOW, 10);
+            offset.put(ColorEnum.GREEN, 20);
+            offset.put(ColorEnum.BLUE, 30);
         }
         return instance;
     }
