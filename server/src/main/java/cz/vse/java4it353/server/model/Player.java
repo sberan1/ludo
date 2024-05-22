@@ -57,9 +57,10 @@ public class Player {
                 colorPlayer = colorEnum;
             }
         }
+        int offset = Game.offset.get(colorPlayer);
 
         for (ColorEnum color : playerMap.keySet()) {
-            checkCollision(color, lobby.getBoardState().getPlayerMap().get(color), newPosition, colorPlayer);
+            checkCollision(Game.offset.get(color), lobby.getBoardState().getPlayerMap().get(color), newPosition, offset);
         }
     }
 
@@ -94,10 +95,7 @@ public class Player {
         }
     }
 
-    private void checkCollision(ColorEnum otherColor, Player otherPlayer, int newPosition, ColorEnum currentColor) {
-        int playerOffset = Game.offset.get(currentColor);
-        int otherPlayerOffset = Game.offset.get(otherColor);
-
+    private void checkCollision(int otherPlayerOffset, Player otherPlayer, int newPosition, int playerOffset) {
         if (otherPlayer != this && otherPlayer != null) {
             for (Token otherToken : otherPlayer.getTokens()) {
                 if ((otherToken.getPosition() + otherPlayerOffset) % Board.BOARD_SIZE  == (newPosition + playerOffset) % Board.BOARD_SIZE) {

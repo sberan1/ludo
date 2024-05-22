@@ -22,6 +22,7 @@ public class LoginCommand implements ICommand {
 
     public LoginCommand(Socket clientSocket, List<Socket> clientSockets) {
         this.clientSocket = clientSocket;
+        this.clientSockets = clientSockets;
     }
 
     /**
