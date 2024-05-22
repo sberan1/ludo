@@ -7,10 +7,22 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
+import javafx.util.Pair;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 public class HomeController {
 
+    private int moveToken = 0;
+    private String name = "";
+    private ImageView selectedFigurka = null;
+    private Map<ImageView, ImageView> poziceFigurky = new HashMap<>();
+    private Map<String, ImageView> nasazeniPozice = new HashMap<>();
+    private Map<String, List<Pair<Double, Double>>> startPositions = new HashMap<>();
     @FXML
     private Button hodKostkouButton;
     @FXML
@@ -53,7 +65,6 @@ public class HomeController {
     private ImageView figurka3L;
     @FXML
     private ImageView figurka4L;
-    private ImageView selectedFigurka = null;
     @FXML
     private ImageView c1xl31xm21xz11;
     @FXML
@@ -183,17 +194,55 @@ public class HomeController {
         figurka2L.setOnMouseClicked(this::handleFigurkaClick);
         figurka3L.setOnMouseClicked(this::handleFigurkaClick);
         figurka4L.setOnMouseClicked(this::handleFigurkaClick);
+
+        nasazeniPozice.put("C", c1xl31xm21xz11);
+        nasazeniPozice.put("L", c11xl1xm31xz21);
+        nasazeniPozice.put("M", c21xl11xm1xz31);
+        nasazeniPozice.put("Z", c31xl21xm11xz1);
+
+        List<Pair<Double, Double>> cerveny = Arrays.asList(
+                new Pair<>(figurka1C.getLayoutX(), figurka1C.getLayoutY()),
+                new Pair<>(figurka2C.getLayoutX(), figurka2C.getLayoutY()),
+                new Pair<>(figurka3C.getLayoutX(), figurka3C.getLayoutY()),
+                new Pair<>(figurka4C.getLayoutX(), figurka4C.getLayoutY())
+        );
+        List<Pair<Double, Double>> zluty = Arrays.asList(
+                new Pair<>(figurka1L.getLayoutX(), figurka1L.getLayoutY()),
+                new Pair<>(figurka2L.getLayoutX(), figurka2L.getLayoutY()),
+                new Pair<>(figurka3L.getLayoutX(), figurka3L.getLayoutY()),
+                new Pair<>(figurka4L.getLayoutX(), figurka4L.getLayoutY())
+        );
+        List<Pair<Double, Double>> modry = Arrays.asList(
+                new Pair<>(figurka1M.getLayoutX(), figurka1M.getLayoutY()),
+                new Pair<>(figurka2M.getLayoutX(), figurka2M.getLayoutY()),
+                new Pair<>(figurka3M.getLayoutX(), figurka3M.getLayoutY()),
+                new Pair<>(figurka4M.getLayoutX(), figurka4M.getLayoutY())
+        );
+        List<Pair<Double, Double>> zeleny = Arrays.asList(
+                new Pair<>(figurka1Z.getLayoutX(), figurka1Z.getLayoutY()),
+                new Pair<>(figurka2Z.getLayoutX(), figurka2Z.getLayoutY()),
+                new Pair<>(figurka3Z.getLayoutX(), figurka3Z.getLayoutY()),
+                new Pair<>(figurka4Z.getLayoutX(), figurka4Z.getLayoutY())
+        );
+
+        startPositions.put("C", cerveny);
+        startPositions.put("L", zluty);
+        startPositions.put("M", modry);
+        startPositions.put("Z", zeleny);
     }
     private void handleFigurkaClick(MouseEvent event) {
         selectedFigurka = (ImageView) event.getSource();
-        String command = "M ";// + výsledek hodu kostkou
+        String command = "M " + moveToken;
         Client client = Client.getInstance();
         client.send(command);
+
+        selectedFigurka = null;
     }
     public void hodKostkou(ActionEvent actionEvent) {
         String command = "R";
         Client client = Client.getInstance();
         client.send(command);
+        moveToken = 1; // Zpracování odpovědi serveru
     }
     private void handlePositionClick(MouseEvent event) {
         // Posun figurky na pozici, kterou mi vrátí server - musím si jí vypočítat sám
@@ -202,6 +251,7 @@ public class HomeController {
         // l31 = Žlutá barva 31. políčko
         // m21 = Modrá barva 21. políčko
         // z11 = Zelená barva 11. políčko
+
     }
 
     public void odeslat(ActionEvent actionEvent) {
@@ -210,6 +260,31 @@ public class HomeController {
         Client client = Client.getInstance();
         client.send(command);
         vstupTextField.clear();
+    }
+    private void nasazeniFigurky() {
+        String zvolenaFigurka = selectedFigurka.getId();
+        String barva = String.valueOf(zvolenaFigurka.charAt(zvolenaFigurka.length() - 1));
+
+        /*List<Pair<Double, Double>> startovniPozice = startPositions.get(barva);
+        if(startovniPozice == null) {
+            return;
+        }
+        for (Pair<Double, Double> startPosition: startovniPozice)
+        {
+            if(startPosition.getKey() == selectedFigurka.getLayoutX() &&
+                    startPosition.getValue() == selectedFigurka.getLayoutY())
+            {
+
+            }
+        }*/
+
+        ImageView startPosition = nasazeniPozice.get(barva);
+
+        if(selectedFigurka.getLayoutX() == 0)
+        if(startPosition != null) {
+            selectedFigurka.setLayoutX(startPosition.getLayoutX());
+            selectedFigurka.setLayoutY(startPosition.getLayoutY());
+        }
     }
 
     /*
