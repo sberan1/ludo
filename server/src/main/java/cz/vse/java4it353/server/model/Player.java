@@ -2,7 +2,9 @@ package cz.vse.java4it353.server.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import cz.vse.java4it353.server.enums.ColorEnum;
+import cz.vse.java4it353.server.logic.Game;
 
+import java.lang.reflect.MalformedParameterizedTypeException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,21 +50,16 @@ public class Player {
     public void moveToken(int tokenIndex, int steps, Lobby lobby) {
         int newPosition = tokens[tokenIndex].move(steps);
 
-        for (ColorEnum color : lobby.getBoardState().getPlayerMap().keySet()) {
-            switch (color) {
-                case RED:
-                    checkCollision(lobby.getBoardState().getPlayerMap().get(ColorEnum.RED), newPosition);
-                    break;
-                case YELLOW:
-                    checkCollision(lobby.getBoardState().getPlayerMap().get(ColorEnum.GREEN), newPosition-10);
-                    break;
-                case BLUE:
-                    checkCollision(lobby.getBoardState().getPlayerMap().get(ColorEnum.BLUE), newPosition-20);
-                    break;
-                case GREEN:
-                    checkCollision(lobby.getBoardState().getPlayerMap().get(ColorEnum.YELLOW), newPosition-30);
-                    break;
+        Map <ColorEnum, Player> playerMap = lobby.getBoardState().getPlayerMap();
+        ColorEnum colorPlayer = null;
+        for (ColorEnum colorEnum : playerMap.keySet()){
+            if (playerMap.get(colorEnum).equals(this)){
+                colorPlayer = colorEnum;
             }
+        }
+
+        for (ColorEnum color : playerMap.keySet()) {
+            checkCollision(color, lobby.getBoardState().getPlayerMap().get(color), newPosition, colorPlayer);
         }
     }
 
@@ -97,10 +94,13 @@ public class Player {
         }
     }
 
-    private void checkCollision(Player otherPlayer, int newPosition) {
+    private void checkCollision(ColorEnum otherColor, Player otherPlayer, int newPosition, ColorEnum currentColor) {
+        int playerOffset = Game.offset.get(currentColor);
+        int otherPlayerOffset = Game.offset.get(otherColor);
+
         if (otherPlayer != this && otherPlayer != null) {
             for (Token otherToken : otherPlayer.getTokens()) {
-                if (otherToken.getPosition() == newPosition) {
+                if ((otherToken.getPosition() + otherPlayerOffset) % Board.BOARD_SIZE  == (newPosition + playerOffset) % Board.BOARD_SIZE) {
                     otherToken.setPosition(0);
                 }
             }
