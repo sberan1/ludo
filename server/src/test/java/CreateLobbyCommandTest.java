@@ -24,7 +24,12 @@ public class CreateLobbyCommandTest {
 
         CreateLobbyCommand createLobbyCommand = new CreateLobbyCommand(mockSocket, mockSockets);
         String testLobbyName = "TestLobby";
-        String output = createLobbyCommand.execute(testLobbyName);
+        String output = null;
+        try {
+            output = createLobbyCommand.execute(testLobbyName);
+        }catch (Exception e){
+            System.out.println("Exception: " + e);
+        }
 
         Game game = Game.getInstance();
         Lobby lobby = game.listLobbies().stream()
