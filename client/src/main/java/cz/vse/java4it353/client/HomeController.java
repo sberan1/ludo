@@ -10,11 +10,15 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.*;
 
 
 public class HomeController {
+    private static final Logger log = LoggerFactory.getLogger(HomeController.class);
 
     private int moveToken = 0;
     private String name = "";
@@ -230,14 +234,25 @@ public class HomeController {
         startPositions.put("Z", zeleny);
     }
     private void handleFigurkaClick(MouseEvent event) {
+        /*
         selectedFigurka = (ImageView) event.getSource();
         String command = "M " + moveToken;
         Client client = Client.getInstance();
         client.send(command);
 
         selectedFigurka = null;
+        */
+
+        String command = "L " + Math.random() * 100;
+        Client client = null;
+        try {
+            client = Client.getInstance();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        client.send(command);
     }
-    public void hodKostkou(ActionEvent actionEvent) {
+    public void hodKostkou(ActionEvent actionEvent) throws IOException {
         String command = "R";
         Client client = Client.getInstance();
         client.send(command);
@@ -253,7 +268,7 @@ public class HomeController {
 
     }
 
-    public void odeslat(ActionEvent actionEvent) {
+    public void odeslat(ActionEvent actionEvent) throws IOException {
         String message = vstupTextField.getText();
         String command = "H " + message;
         Client client = Client.getInstance();
