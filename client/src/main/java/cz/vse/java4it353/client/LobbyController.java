@@ -40,6 +40,7 @@ public class LobbyController {
         // Initialize components if needed
         try {
             client = Client.getInstance();
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -107,21 +108,25 @@ public class LobbyController {
     @FXML
     private void joinLobby() {
         try {
-            String selectedLobby = lobbiesListView.getSelectionModel().getSelectedItem();
+            //String selectedLobby = lobbiesListView.getSelectionModel().getSelectedItem();
+            String selectedLobby = "paypal";
             if (selectedLobby != null && !selectedLobby.isEmpty()) {
                 String response = client.send("J " + selectedLobby);
+                logger.info("ODESLANÝ PŘÍKAZ J " + selectedLobby);
                 if (response != null) {
                     // Odstranění znaku 'J'
                     if (response.startsWith("J ")) {
                         response = response.substring(2);
+                        logger.info("ODSTRANĚNÍ ZNAKU J");
                     }
 
                     ObjectMapper objectMapper = new ObjectMapper();
+                    logger.info("ZAČÁTEK ČTENÍ READTREE");
                     JsonNode lobbyNode = objectMapper.readTree(response);
 
                     // Kontrola, zda JSON obsahuje klíč 'name'
                     if (lobbyNode != null && lobbyNode.has("name")) {
-
+                        logger.info("LOBBYNODE OBSAHUJE NAME, UPDATEPLAYERSLIST PLAYERS");
                         updatePlayersList(lobbyNode.get("players"));
                     } else {
                         logger.error("JSON response does not contain expected 'name' field: " + response);
