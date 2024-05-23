@@ -20,6 +20,7 @@ public class Main extends Application {
     private static final Logger log = LoggerFactory.getLogger(Main.class);
     public static LobbyController lobbyController;
     private static Stage primaryStage;
+    public static String playerName = "";
 
     public static void main(String[] args) {
         log.info("Starting JavaFX application");
@@ -47,7 +48,7 @@ public class Main extends Application {
 
         Optional<String> result = dialog.showAndWait();
         if (result.isPresent()) {
-            String playerName = result.get();
+            playerName = result.get();
             log.info("Logged name: " + playerName);
             new Thread(() -> {
                 Client client = null;

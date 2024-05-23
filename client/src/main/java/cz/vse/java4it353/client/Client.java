@@ -13,38 +13,52 @@ import java.util.Map;
 
 public class Client {
     private static final Logger logger = LoggerFactory.getLogger(Client.class);
-    private Socket clientSocket = new Socket("127.0.0.1", 12345);
-    private PrintWriter pw = new PrintWriter(clientSocket.getOutputStream(), true);
-    private BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-    private Thread listenerThread = new Thread(new Listener(clientSocket.getInputStream()));
+    private Socket clientSocket;
+    private PrintWriter pw;
+    private BufferedReader in;
+    private Thread listenerThread;
     private static Client instance = null;
 
 
     private Client() throws IOException {
-
+        startConnection();
     }
 
     public static Client getInstance() throws IOException {
         if (instance == null) {
             instance = new Client();
+
         }
         return instance;
     }
-
-    public void send(String data) {
-        try {
-            listenerThread.start();
-            pw.println(data);
-            String odpoved;
-            while((odpoved = in.readLine()) != null)
-            {
-                logger.info(odpoved);
-            }
-
-        } catch (IOException e) {
-            logger.error("Doslo k vyjimce behem komunikace se serverem.", e);
-        }
+    private void startConnection() throws IOException {
+        clientSocket = new Socket("127.0.0.1", 12345);
+        pw = new PrintWriter(clientSocket.getOutputStream(), true);
+        in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        listenerThread = new Thread(new Listener(clientSocket.getInputStream()));
+        listenerThread.start();
     }
+
+    public String send(String data) {
+        pw.println(data);
+        logger.info("Příkaz odeslán: " + data);
+        return receive();
+    }
+    public String receive() {
+        String odpoved;
+        try {
+            if ((odpoved = in.readLine()) != null) {
+                logger.info(odpoved);
+                return odpoved;
+            }
+        } catch (IOException e) {
+            logger.error("Během získávání odpovědi se stala chyba.");
+            logger.error(e.getMessage());
+            throw new RuntimeException(e);
+        }
+        return null;
+    }
+
 
     public void closeConnection() {
         try {

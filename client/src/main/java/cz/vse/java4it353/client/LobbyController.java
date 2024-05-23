@@ -13,12 +13,20 @@ import java.io.IOException;
 public class LobbyController {
 
     private static final Logger logger = LoggerFactory.getLogger(LobbyController.class);
+    private Client client;
 
     @FXML
     private ListView<String> playersListView;
 
     public void initialize() {
         // Initialize components if needed
+        try {
+            client = Client.getInstance();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        client.send("C testovaci");
+        //logger.info(p);
     }
 
     public void updateLobby(String response) {
