@@ -6,6 +6,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
@@ -26,6 +27,8 @@ public class LobbyController {
     private ListView<String> lobbiesListView;
     @FXML
     public TextField lobbyNameInput;
+    @FXML
+    public Button joinLobbyButton;
     public LobbyController() {
         instance = this;
     }
@@ -99,6 +102,42 @@ public class LobbyController {
             }
         } catch (Exception e) {
             logger.error("Failed to send create lobby command.", e);
+        }
+    }
+    @FXML
+    private void joinLobby() {
+        try {
+            String selectedLobby = lobbiesListView.getSelectionModel().getSelectedItem();
+            if (selectedLobby != null && !selectedLobby.isEmpty()) {
+                String response = client.send("J " + selectedLobby);
+                if (response != null) {
+                    // Odstranění znaku 'J'
+                    if (response.startsWith("J ")) {
+                        response = response.substring(2);
+                    }
+
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    JsonNode lobbyNode = objectMapper.readTree(response);
+
+                    // Kontrola, zda JSON obsahuje klíč 'name'
+                    if (lobbyNode != null && lobbyNode.has("name")) {
+
+                        updatePlayersList(lobbyNode.get("players"));
+                    } else {
+                        logger.error("JSON response does not contain expected 'name' field: " + response);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Failed to send join lobby command.", e);
+        }
+    }
+    public void updatePlayersList(JsonNode players) {
+        playersListView.getItems().clear();
+        for (JsonNode player : players) {
+            if (player != null && player.has("name")) {
+                playersListView.getItems().add(player.get("name").asText());
+            }
         }
     }
 }
