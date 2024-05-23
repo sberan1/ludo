@@ -233,17 +233,12 @@ public class HomeController {
         startPositions.put("M", modry);
         startPositions.put("Z", zeleny);
     }
+
+
     private void handleFigurkaClick(MouseEvent event) {
-        /*
+
         selectedFigurka = (ImageView) event.getSource();
         String command = "M " + moveToken;
-        Client client = Client.getInstance();
-        client.send(command);
-
-        selectedFigurka = null;
-        */
-
-        String command = "L " + Math.random() * 100;
         Client client = null;
         try {
             client = Client.getInstance();
@@ -251,6 +246,9 @@ public class HomeController {
             throw new RuntimeException(e);
         }
         client.send(command);
+
+        selectedFigurka = null;
+
     }
     public void hodKostkou(ActionEvent actionEvent) throws IOException {
         String command = "R";

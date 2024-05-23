@@ -49,7 +49,7 @@
                   <Font size="38.0" />
                </font>
             </Text>
-            <ListView layoutX="21.0" layoutY="65.0" prefHeight="144.0" prefWidth="200.0" />
+            <ListView fx:id="playersListView" layoutX="21.0" layoutY="65.0" prefHeight="144.0" prefWidth="200.0" />
             <RadioButton layoutX="43.0" layoutY="229.0" mnemonicParsing="false" text="Červená">
                <toggleGroup>
                   <ToggleGroup fx:id="barva" />

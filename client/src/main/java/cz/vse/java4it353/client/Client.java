@@ -45,4 +45,14 @@ public class Client {
             logger.error("Doslo k vyjimce behem komunikace se serverem.", e);
         }
     }
+
+    public void closeConnection() {
+        try {
+            if (clientSocket != null) {
+                clientSocket.close();
+            }
+        } catch (IOException e) {
+            logger.error("Exception occurred while closing connection.", e);
+        }
+    }
 }
