@@ -1,9 +1,13 @@
 package cz.vse.java4it353.client;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,10 +17,21 @@ import java.io.IOException;
 public class LobbyController {
 
     private static final Logger logger = LoggerFactory.getLogger(LobbyController.class);
+    private static LobbyController instance;
     private Client client;
 
     @FXML
     private ListView<String> playersListView;
+    @FXML
+    private ListView<String> lobbiesListView;
+    @FXML
+    public TextField lobbyNameInput;
+    public LobbyController() {
+        instance = this;
+    }
+    public static LobbyController getInstance() {
+        return instance;
+    }
 
     public void initialize() {
         // Initialize components if needed
@@ -25,18 +40,9 @@ public class LobbyController {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        client.send("C testovaci");
-        //logger.info(p);
     }
 
-    public void updateLobby(String response) {
-        // Clear the list and update with new players
-        playersListView.getItems().clear();
-        String[] players = response.split(",");
-        for (String player : players) {
-            playersListView.getItems().add(player.trim());
-        }
-    }
+
 
     public void handleChooseColor() {
         String color = "RED"; // TESTOVACÍ BARVA
@@ -66,6 +72,33 @@ public class LobbyController {
             gameStage.show();
         } catch (IOException e) {
             logger.error("Error loading aplikace.fxml", e);
+        }
+    }
+
+    @FXML
+    private void createLobby() {
+        try {
+            String lobbyName = lobbyNameInput.getText();
+            String response = client.send("C " + lobbyName);
+            if (response != null) {
+                // Odstranění znaku 'J'
+                if (response.startsWith("J ")) {
+                    response = response.substring(2);
+                }
+
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode lobbyNode = objectMapper.readTree(response);
+
+                // Kontrola, zda JSON obsahuje klíč 'name'
+                if (lobbyNode != null && lobbyNode.has("name")) {
+                    String lobbyNameFromResponse = lobbyNode.get("name").asText();
+                    lobbiesListView.getItems().add(lobbyNameFromResponse);
+                } else {
+                    logger.error("JSON response does not contain expected 'name' field: " + response);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Failed to send create lobby command.", e);
         }
     }
 }

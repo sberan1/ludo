@@ -1,5 +1,6 @@
 package cz.vse.java4it353.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
