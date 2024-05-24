@@ -1,7 +1,10 @@
 package cz.vse.java4it353.client;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -14,10 +17,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.*;
 
 public class LobbyController {
 
     private static final Logger logger = LoggerFactory.getLogger(LobbyController.class);
+    private Map<String, List<String>> lobbyPlayersMap = new HashMap<>();
     private static LobbyController instance;
     private Client client;
 
@@ -40,13 +45,34 @@ public class LobbyController {
         // Initialize components if needed
         try {
             client = Client.getInstance();
+            String command = "L " + Main.playerName;
+            String response = client.send(command);
+            if(response != null) {
+                if (response.startsWith("L ")) {
+                    response = response.substring(2);
+                    logger.info("ODSTRANĚNÍ ZNAKU L");
+                }
+                processLobbies(response);
+            }
+            lobbiesListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+                if (newValue != null) {
+                    updatePlayersListView(newValue);
+                }
+            });
 
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
-
-
+    private void updateLobbiesListView() {
+        ObservableList<String> lobbies = FXCollections.observableArrayList(lobbyPlayersMap.keySet());
+        lobbiesListView.setItems(lobbies);
+    }
+    private void updatePlayersListView(String lobbyName) {
+        List<String> players = lobbyPlayersMap.getOrDefault(lobbyName, Collections.emptyList());
+        ObservableList<String> playerNames = FXCollections.observableArrayList(players);
+        playersListView.setItems(playerNames);
+    }
 
     public void handleChooseColor() {
         String color = "RED"; // TESTOVACÍ BARVA
@@ -105,11 +131,38 @@ public class LobbyController {
             logger.error("Failed to send create lobby command.", e);
         }
     }
+    private void processLobbies(String jsonResponse) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode rootNode = objectMapper.readTree(jsonResponse);
+
+            lobbyPlayersMap.clear();
+
+            rootNode.fields().forEachRemaining(entry -> {
+                String lobbyName = entry.getKey();
+                JsonNode lobbyNode = entry.getValue();
+                JsonNode playersNode = lobbyNode.path("players");
+
+                List<String> players = new ArrayList<>();
+                for (JsonNode playerNode : playersNode) {
+                    if (!playerNode.isNull()) {
+                        players.add(playerNode.path("name").asText());
+                    }
+                }
+
+                lobbyPlayersMap.put(lobbyName, players);
+            });
+
+            updateLobbiesListView();
+        } catch (IOException e) {
+            logger.error("Error processing JSON response.", e);
+        }
+    }
     @FXML
     private void joinLobby() {
         try {
-            //String selectedLobby = lobbiesListView.getSelectionModel().getSelectedItem();
-            String selectedLobby = "paypal";
+            String selectedLobby = lobbiesListView.getSelectionModel().getSelectedItem();
+            //String selectedLobby = "paypal";
             if (selectedLobby != null && !selectedLobby.isEmpty()) {
                 String response = client.send("J " + selectedLobby);
                 logger.info("ODESLANÝ PŘÍKAZ J " + selectedLobby);

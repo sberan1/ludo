@@ -66,7 +66,7 @@ public class Main extends Application {
         Parent root = FXMLLoader.load(getClass().getResource("/lobby.fxml"));
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
-        primaryStage.setTitle("Lobby");
+        primaryStage.setTitle("Lobby - " + playerName);
         primaryStage.show();
         log.info("lobby.fxml started");
     }

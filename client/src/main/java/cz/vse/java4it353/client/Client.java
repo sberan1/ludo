@@ -17,6 +17,7 @@ public class Client {
     private Socket clientSocket;
     private PrintWriter pw;
     private BufferedReader in;
+    private Listener listener;
     private Thread listenerThread;
     private static Client instance = null;
 
@@ -36,7 +37,8 @@ public class Client {
         clientSocket = new Socket("127.0.0.1", 12345);
         pw = new PrintWriter(clientSocket.getOutputStream(), true);
         in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        listenerThread = new Thread(new Listener(clientSocket.getInputStream()));
+        listener = new Listener(clientSocket.getInputStream());
+        listenerThread = new Thread(listener);
         listenerThread.start();
     }
 
@@ -45,19 +47,19 @@ public class Client {
         logger.info("Příkaz odeslán: " + data);
         return receive();
     }
-    public String receive() {
+    private String receive() {
+        StringBuilder celaOdpoved = new StringBuilder();
         String odpoved;
         try {
             if ((odpoved = in.readLine()) != null) {
-                logger.info(odpoved);
-                return odpoved;
+                celaOdpoved.append(odpoved);
             }
+            logger.info("Odpověď serveru: " + odpoved);
+            return odpoved;
         } catch (IOException e) {
-            logger.error("Během získávání odpovědi se stala chyba.");
-            logger.error(e.getMessage());
-            throw new RuntimeException(e);
+            logger.error("Během získávání odpovědi se stala chyba.", e);
+            return null;
         }
-        return null;
     }
 
 
