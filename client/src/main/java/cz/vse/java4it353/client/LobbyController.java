@@ -1,11 +1,10 @@
 package cz.vse.java4it353.client;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -16,8 +15,12 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class LobbyController {
 
@@ -34,9 +37,16 @@ public class LobbyController {
     public TextField lobbyNameInput;
     @FXML
     public Button joinLobbyButton;
+
+    private PrintWriter pw;
+    private BufferedReader in;
+    // Using a fixed thread pool for managing multiple threads
+    private static final ExecutorService executorService = Executors.newFixedThreadPool(10);
+
     public LobbyController() {
         instance = this;
     }
+
     public static LobbyController getInstance() {
         return instance;
     }
@@ -45,9 +55,12 @@ public class LobbyController {
         // Initialize components if needed
         try {
             client = Client.getInstance();
+            pw = client.pw;
+            in = client.in;
+
             String command = "L " + Main.playerName;
             String response = client.send(command);
-            if(response != null) {
+            if (response != null) {
                 if (response.startsWith("L ")) {
                     response = response.substring(2);
                     logger.info("ODSTRANĚNÍ ZNAKU L");
@@ -64,10 +77,12 @@ public class LobbyController {
             throw new RuntimeException(e);
         }
     }
+
     private void updateLobbiesListView() {
         ObservableList<String> lobbies = FXCollections.observableArrayList(lobbyPlayersMap.keySet());
         lobbiesListView.setItems(lobbies);
     }
+
     private void updatePlayersListView(String lobbyName) {
         List<String> players = lobbyPlayersMap.getOrDefault(lobbyName, Collections.emptyList());
         ObservableList<String> playerNames = FXCollections.observableArrayList(players);
@@ -131,6 +146,7 @@ public class LobbyController {
             logger.error("Failed to send create lobby command.", e);
         }
     }
+
     private void processLobbies(String jsonResponse) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -158,16 +174,22 @@ public class LobbyController {
             logger.error("Error processing JSON response.", e);
         }
     }
+
     @FXML
     private void joinLobby() {
-        try {
-            String selectedLobby = lobbiesListView.getSelectionModel().getSelectedItem();
-            //String selectedLobby = "paypal";
-            if (selectedLobby != null && !selectedLobby.isEmpty()) {
-                String response = client.send("J " + selectedLobby);
-                logger.info("ODESLANÝ PŘÍKAZ J " + selectedLobby);
+        String selectedLobby = lobbiesListView.getSelectionModel().getSelectedItem();
+        if (selectedLobby != null && !selectedLobby.isEmpty()) {
+            Task<String> task = new Task<String>() {
+                @Override
+                protected String call() throws Exception {
+                    return send("J " + selectedLobby);
+                }
+            };
+
+            task.setOnSucceeded(event -> {
+                String response = task.getValue();
+                // Handle the server response
                 if (response != null) {
-                    // Odstranění znaku 'J'
                     if (response.startsWith("J ")) {
                         response = response.substring(2);
                         logger.info("ODSTRANĚNÍ ZNAKU J");
@@ -175,27 +197,66 @@ public class LobbyController {
 
                     ObjectMapper objectMapper = new ObjectMapper();
                     logger.info("ZAČÁTEK ČTENÍ READTREE");
-                    JsonNode lobbyNode = objectMapper.readTree(response);
+                    try {
+                        JsonNode lobbyNode = objectMapper.readTree(response);
 
-                    // Kontrola, zda JSON obsahuje klíč 'name'
-                    if (lobbyNode != null && lobbyNode.has("name")) {
-                        logger.info("LOBBYNODE OBSAHUJE NAME, UPDATEPLAYERSLIST PLAYERS");
-                        updatePlayersList(lobbyNode.get("players"));
-                    } else {
-                        logger.error("JSON response does not contain expected 'name' field: " + response);
+                        // Kontrola, zda JSON obsahuje klíč 'name'
+                        if (lobbyNode != null && lobbyNode.has("name")) {
+                            logger.info("LOBBYNODE OBSAHUJE NAME, UPDATEPLAYERSLIST PLAYERS");
+                            updatePlayersList(lobbyNode.get("players"));
+                        } else {
+                            logger.error("JSON response does not contain expected 'name' field: " + response);
+                        }
+                    } catch (IOException e) {
+                        logger.error("Error processing JSON response.", e);
                     }
                 }
-            }
-        } catch (Exception e) {
-            logger.error("Failed to send join lobby command.", e);
+            });
+
+            task.setOnFailed(event -> {
+                Throwable e = task.getException();
+                e.printStackTrace();
+                // Handle the error
+            });
+
+            executorService.submit(task);
         }
     }
-    public void updatePlayersList(JsonNode players) {
+
+    private void updatePlayersList(JsonNode players) {
         playersListView.getItems().clear();
         for (JsonNode player : players) {
             if (player != null && player.has("name")) {
                 playersListView.getItems().add(player.get("name").asText());
             }
         }
+    }
+
+    public String send(String data) {
+        pw.println(data);
+        logger.info("Command sent: " + data);
+        return receive();
+    }
+
+    private String receive() {
+        StringBuilder fullResponse = new StringBuilder();
+        String response;
+        try {
+            while ((response = in.readLine()) != null) {
+                fullResponse.append(response);
+            }
+            logger.info("Server response: " + fullResponse.toString());
+            return fullResponse.toString();
+        } catch (IOException e) {
+            logger.error("Error receiving response.", e);
+            return null;
+        } catch (Exception e) {
+            logger.error("Error: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public void stop() {
+        executorService.shutdown();
     }
 }

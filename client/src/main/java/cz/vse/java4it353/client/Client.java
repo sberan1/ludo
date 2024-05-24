@@ -15,8 +15,8 @@ import java.util.Map;
 public class Client {
     private static final Logger logger = LoggerFactory.getLogger(Client.class);
     private Socket clientSocket;
-    private PrintWriter pw;
-    private BufferedReader in;
+    public PrintWriter pw;
+    public BufferedReader in;
     private Listener listener;
     private Thread listenerThread;
     private static Client instance = null;
@@ -58,6 +58,10 @@ public class Client {
             return odpoved;
         } catch (IOException e) {
             logger.error("Během získávání odpovědi se stala chyba.", e);
+            return null;
+        }
+        catch(Exception e) {
+            logger.error("Chyba: " + e.getMessage());
             return null;
         }
     }
