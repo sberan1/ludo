@@ -85,8 +85,11 @@ public class LobbyController {
 
     private void updatePlayersListView(String lobbyName) {
         List<String> players = lobbyPlayersMap.getOrDefault(lobbyName, Collections.emptyList());
+        logger.debug("Players in updatePlayersListView: " + players.toString());
         ObservableList<String> playerNames = FXCollections.observableArrayList(players);
+        logger.debug("Player names in updatePlayersListView: " + playerNames.toString());
         playersListView.setItems(playerNames);
+        logger.debug("playersListView: " + playersListView);
     }
 
     public void handleChooseColor() {
@@ -138,6 +141,13 @@ public class LobbyController {
                 if (lobbyNode != null && lobbyNode.has("name")) {
                     String lobbyNameFromResponse = lobbyNode.get("name").asText();
                     lobbiesListView.getItems().add(lobbyNameFromResponse);
+
+                    // Přidání hráče do lobby
+                    List<String> players = new ArrayList<>();
+                    players.add(Main.playerName);
+                    lobbyPlayersMap.put(lobbyNameFromResponse, players);
+
+                    updatePlayersListView(lobbyNameFromResponse);
                 } else {
                     logger.error("JSON response does not contain expected 'name' field: " + response);
                 }
@@ -154,20 +164,24 @@ public class LobbyController {
 
             lobbyPlayersMap.clear();
 
-            rootNode.fields().forEachRemaining(entry -> {
-                String lobbyName = entry.getKey();
-                JsonNode lobbyNode = entry.getValue();
-                JsonNode playersNode = lobbyNode.path("players");
+            // Zpracování hlavního uzlu JSON odpovědi
+            if (rootNode.isObject()) {
+                rootNode.fields().forEachRemaining(entry -> {
+                    String lobbyName = entry.getKey();
+                    JsonNode lobbyNode = entry.getValue();
 
-                List<String> players = new ArrayList<>();
-                for (JsonNode playerNode : playersNode) {
-                    if (!playerNode.isNull()) {
-                        players.add(playerNode.path("name").asText());
+                    JsonNode playersNode = lobbyNode.path("players");
+
+                    List<String> players = new ArrayList<>();
+                    for (JsonNode playerNode : playersNode) {
+                        if (playerNode != null && playerNode.has("name")) {
+                            players.add(playerNode.path("name").asText());
+                        }
                     }
-                }
 
-                lobbyPlayersMap.put(lobbyName, players);
-            });
+                    lobbyPlayersMap.put(lobbyName, players);
+                });
+            }
 
             updateLobbiesListView();
         } catch (IOException e) {
@@ -178,32 +192,53 @@ public class LobbyController {
     @FXML
     private void joinLobby() {
         String selectedLobby = lobbiesListView.getSelectionModel().getSelectedItem();
+        logger.debug("Selected lobby: " + selectedLobby);
         if (selectedLobby != null && !selectedLobby.isEmpty()) {
             Task<String> task = new Task<String>() {
                 @Override
                 protected String call() throws Exception {
-                    return send("J " + selectedLobby);
+                    return client.send("J " + selectedLobby);
                 }
             };
 
             task.setOnSucceeded(event -> {
                 String response = task.getValue();
+                logger.debug("Server response in LobbyController: " + response);
                 // Handle the server response
                 if (response != null) {
                     if (response.startsWith("J ")) {
                         response = response.substring(2);
                         logger.info("ODSTRANĚNÍ ZNAKU J");
+                        logger.debug("Server response in LobbyController after J-purge: " + response);
                     }
 
                     ObjectMapper objectMapper = new ObjectMapper();
                     logger.info("ZAČÁTEK ČTENÍ READTREE");
                     try {
                         JsonNode lobbyNode = objectMapper.readTree(response);
+                        logger.debug("Lobby node: " + lobbyNode.asText());
 
                         // Kontrola, zda JSON obsahuje klíč 'name'
                         if (lobbyNode != null && lobbyNode.has("name")) {
-                            logger.info("LOBBYNODE OBSAHUJE NAME, UPDATEPLAYERSLIST PLAYERS");
-                            updatePlayersList(lobbyNode.get("players"));
+                            String lobbyName = lobbyNode.get("name").asText();
+                            logger.debug("Lobby name: " + lobbyName);
+
+                            // Aktualizace lobbyPlayersMap
+                            List<String> players = new ArrayList<>();
+                            JsonNode playersNode = lobbyNode.get("players");
+                            logger.debug("All players node: " + playersNode.asText());
+                            for (JsonNode playerNode : playersNode) {
+                                if (!playerNode.isNull()) {
+                                    logger.debug("Player: " + playerNode.asText());
+                                    players.add(playerNode.path("name").asText());
+                                }
+                            }
+                            lobbyPlayersMap.put(lobbyName, players);
+                            logger.debug("Players map: " + lobbyPlayersMap.toString());
+
+                            // Aktualizace playersListView
+                            logger.debug("Updating players list view");
+                            updatePlayersListView(lobbyName);
                         } else {
                             logger.error("JSON response does not contain expected 'name' field: " + response);
                         }
