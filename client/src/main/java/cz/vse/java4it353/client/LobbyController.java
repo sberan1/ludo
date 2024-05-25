@@ -10,11 +10,13 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -25,6 +27,16 @@ import java.util.concurrent.Executors;
 public class LobbyController {
 
     private static final Logger logger = LoggerFactory.getLogger(LobbyController.class);
+    @FXML
+    public RadioButton rbCervena;
+    @FXML
+    public RadioButton rbZluta;
+    @FXML
+    public RadioButton rbModra;
+    @FXML
+    public RadioButton rbZelena;
+    @FXML
+    public Button buttonChooseColor;
     private Map<String, List<String>> lobbyPlayersMap = new HashMap<>();
     private static LobbyController instance;
     private Client client;
@@ -40,8 +52,9 @@ public class LobbyController {
 
     private PrintWriter pw;
     private BufferedReader in;
+    private String offLobbyName = "";
     // Using a fixed thread pool for managing multiple threads
-    private static final ExecutorService executorService = Executors.newFixedThreadPool(10);
+    private static final ExecutorService executorService = Executors.newCachedThreadPool();
 
     public LobbyController() {
         instance = this;
@@ -92,35 +105,66 @@ public class LobbyController {
         logger.debug("playersListView: " + playersListView);
     }
 
-    public void handleChooseColor() {
-        String color = "RED"; // TESTOVACÍ BARVA
-        try {
-            Client.getInstance().send("CC " + color);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    @FXML
+    private void handleChooseColor() {
+        String color = "RED";
+        if(rbZluta.isSelected()) color = "YELLOW";
+        else if(rbModra.isSelected()) color = "BLUE";
+        else if(rbZelena.isSelected()) color = "GREEN";
+
+        String finalColor = color;
+        Task<Void> task = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                client.send("CC " + finalColor);
+                return null;
+            }
+        };
+
+        task.setOnSucceeded(event -> logger.info("Color choice sent: " + finalColor));
+
+        task.setOnFailed(event -> {
+            Throwable e = task.getException();
+            logger.error("Failed to send color choice", e);
+        });
+
+        executorService.submit(task);
     }
 
-    public void handleStartGame() {
-        try {
-            Client.getInstance().send("S");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        // Close the current window and show the game window
-        Stage stage = (Stage) playersListView.getScene().getWindow();
-        stage.close();
+    @FXML
+    private void handleStartGame() {
+        Task<Void> task = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                client.send("S " + offLobbyName);
+                return null;
+            }
+        };
 
-        // Show aplikace.fxml
-        try {
-            FXMLLoader loader = FXMLLoader.load(getClass().getResource("/aplikace.fxml"));
-            Stage gameStage = new Stage();
-            gameStage.setScene(new Scene(loader.load()));
-            gameStage.setTitle("Game");
-            gameStage.show();
-        } catch (IOException e) {
-            logger.error("Error loading aplikace.fxml", e);
-        }
+        task.setOnSucceeded(event -> {
+            logger.info("Start game command sent");
+            // Close the current window and show the game window
+            Stage stage = (Stage) playersListView.getScene().getWindow();
+            stage.close();
+
+            // Show aplikace.fxml
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/aplikace.fxml"));
+                Stage gameStage = new Stage();
+                gameStage.setScene(new Scene(loader.load()));
+                gameStage.setTitle("Game");
+                gameStage.show();
+            } catch (IOException e) {
+                logger.error("Error loading aplikace.fxml", e);
+            }
+        });
+
+        task.setOnFailed(event -> {
+            Throwable e = task.getException();
+            logger.error("Failed to send start game command", e);
+        });
+
+        executorService.submit(task);
     }
 
     @FXML
@@ -192,6 +236,7 @@ public class LobbyController {
     @FXML
     private void joinLobby() {
         String selectedLobby = lobbiesListView.getSelectionModel().getSelectedItem();
+        offLobbyName = selectedLobby;
         logger.debug("Selected lobby: " + selectedLobby);
         if (selectedLobby != null && !selectedLobby.isEmpty()) {
             Task<String> task = new Task<String>() {

@@ -52,14 +52,14 @@
                </font>
             </Text>
             <ListView fx:id="playersListView" layoutX="21.0" layoutY="65.0" prefHeight="144.0" prefWidth="200.0" />
-            <RadioButton layoutX="43.0" layoutY="229.0" mnemonicParsing="false" text="Červená">
+            <RadioButton fx:id="rbCervena" layoutX="43.0" layoutY="229.0" mnemonicParsing="false" text="Červená">
                <toggleGroup>
                   <ToggleGroup fx:id="barva" />
                </toggleGroup>
             </RadioButton>
-            <RadioButton layoutX="143.0" layoutY="229.0" mnemonicParsing="false" text="Žlutá" toggleGroup="$barva" />
-            <RadioButton layoutX="43.0" layoutY="258.0" mnemonicParsing="false" text="Modrá" toggleGroup="$barva" />
-            <RadioButton layoutX="143.0" layoutY="258.0" mnemonicParsing="false" text="Zelená" toggleGroup="$barva" />
+            <RadioButton fx:id="rbZluta" layoutX="143.0" layoutY="229.0" mnemonicParsing="false" text="Žlutá" toggleGroup="$barva" />
+            <RadioButton fx:id="rbModra" layoutX="43.0" layoutY="258.0" mnemonicParsing="false" text="Modrá" toggleGroup="$barva" />
+            <RadioButton fx:id="rbZelena" layoutX="143.0" layoutY="258.0" mnemonicParsing="false" text="Zelená" toggleGroup="$barva" />
             <ListView fx:id="lobbiesListView" layoutX="408.0" layoutY="65.0" prefHeight="144.0" prefWidth="200.0" />
             <Text layoutX="386.0" layoutY="53.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Všechny lobby">
                <font>
@@ -70,6 +70,7 @@
             <TextField fx:id="lobbyNameInput" layoutX="408.0" layoutY="254.0" prefHeight="25.0" prefWidth="200.0" />
             <Button fx:id="joinLobbyButton" layoutX="448.0" layoutY="217.0" mnemonicParsing="false" onAction="#joinLobby" text="Připojit se do lobby" />
             <Button fx:id="startGameButton" layoutX="283.0" layoutY="163.0" mnemonicParsing="false" onAction="#handleStartGame" text="Spustit hru" />
+            <Button fx:id="buttonChooseColor" onAction="#handleChooseColor" layoutX="82.0" layoutY="283.0" mnemonicParsing="false" text="Zvolit barvu" />
       </children>
     </AnchorPane>
   </children>
