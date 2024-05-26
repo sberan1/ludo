@@ -20,7 +20,7 @@ public class Client {
     private Listener listener;
     private Thread listenerThread;
     private static Client instance = null;
-    private String lastResponse = "";
+    private String firstResponse = "";
 
     private Client() throws IOException {
         startConnection();
@@ -32,11 +32,11 @@ public class Client {
         }
         return instance;
     }
-    public void setLastResponse(String response) {
-        this.lastResponse = response;
+    public void setFirstResponse(String response) {
+        this.firstResponse = response;
     }
-    public String getLastResponse() {
-        return lastResponse;
+    public String getFirstResponse() {
+        return firstResponse;
     }
     private void startConnection() throws IOException {
         clientSocket = new Socket("127.0.0.1", 12345);

@@ -59,7 +59,7 @@ public class Main extends Application {
                     throw new RuntimeException(e);
                 }
                 String response = client.send("L " + playerName);
-                client.setLastResponse(response);
+                client.setFirstResponse(response);
                 log.info("Login command with name " + playerName + " has been sent");
             }).start();
         }

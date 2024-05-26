@@ -26,6 +26,7 @@ import java.io.PrintWriter;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 public class LobbyController {
 
@@ -85,16 +86,24 @@ public class LobbyController {
         }
     }
 
-    private void handleLobbySelection(String lobbyName) {
-        // Najděte vybranou lobby v seznamu allLobbies
+    private void handleLobbySelection(String selectedLobbyName) {
+        logger.debug("Započata metoda handleLobbySelection");
         Lobby selectedLobby = allLobies.stream()
-                .filter(lobby -> lobby.getName().equals(lobbyName))
+                .filter(lobby -> lobby.getName().equals(selectedLobbyName))
                 .findFirst()
                 .orElse(null);
-
+        logger.debug("Název zvolené lobby: " + selectedLobby.getName());
         if (selectedLobby != null) {
-            // Aktualizujte seznam hráčů ve vybrané lobby
-            updatePlayersListView(selectedLobby.getName());
+            List<Player> players = selectedLobby.getPlayers();
+            List<String> playerNames = players.stream()
+                    .filter(player -> player != null)
+                    .map(Player::getName)
+                    .collect(Collectors.toList());
+            for (String name : playerNames) {
+                logger.debug("Název osoby v lobby: " + name);
+            }
+            ObservableList<String> observablePlayerNames = FXCollections.observableArrayList(playerNames);
+            playersListView.setItems(observablePlayerNames);
         }
     }
 
@@ -114,13 +123,22 @@ public class LobbyController {
         for (Lobby lobby : allLobies) {
             if(lobby.getName().equalsIgnoreCase(selectedLobby)) {
                 players = lobby.getPlayers();
+                break;
             }
         }
-        for (Player player : players) {
-            playerNames.add(player.getName());
+        if (!players.isEmpty()) {
+            for (Player player : players) {
+                if (player != null && player.getName() != null) {
+                    playerNames.add(player.getName());
+                }
+            }
+
+            ObservableList<String> observablePlayerNames = FXCollections.observableArrayList(playerNames);
+            lobbiesListView.setItems(observablePlayerNames);
+        } else {
+            // Pokud seznam hráčů je prázdný, vyčistí se ListView
+            lobbiesListView.getItems().clear();
         }
-        ObservableList<String> observablePlayerNames = FXCollections.observableArrayList(playerNames);
-        lobbiesListView.setItems(observablePlayerNames);
     }
 
     @FXML
@@ -195,28 +213,7 @@ public class LobbyController {
             String lobbyName = lobbyNameInput.getText();
             String response = client.send("C " + lobbyName);
             if (response != null) {
-                // Odstranění znaku 'J'
-                if (response.startsWith("J ")) {
-                    response = response.substring(2);
-                }
-
-                ObjectMapper objectMapper = new ObjectMapper();
-                JsonNode lobbyNode = objectMapper.readTree(response);
-
-                // Kontrola, zda JSON obsahuje klíč 'name'
-                if (lobbyNode != null && lobbyNode.has("name")) {
-                    String lobbyNameFromResponse = lobbyNode.get("name").asText();
-                    lobbiesListView.getItems().add(lobbyNameFromResponse);
-
-                    // Přidání hráče do lobby
-                    List<String> players = new ArrayList<>();
-                    players.add(Main.playerName);
-                    lobbyPlayersMap.put(lobbyNameFromResponse, players);
-
-                    //updatePlayersListView();
-                } else {
-                    logger.error("JSON response does not contain expected 'name' field: " + response);
-                }
+                handleServerResponse(response);
             }
         } catch (Exception e) {
             logger.error("Failed to send create lobby command.", e);
@@ -355,27 +352,39 @@ public class LobbyController {
     }
 
     public void refresh(ActionEvent actionEvent) {
-        logger.debug(client.getLastResponse());
-        handleServerResponse(client.getLastResponse());
+        logger.debug(client.getFirstResponse());
+        handleServerResponse(client.getFirstResponse());
     }
     private void handleServerResponse(String data) {
         boolean dataStartsWithLOrJ = data.startsWith("L ") || data.startsWith("J ");
         boolean dataIsNotNull = data != null;
+        logger.debug("Data starts with L or J: " + dataStartsWithLOrJ);
+        logger.debug("Data is not null: " + dataIsNotNull);
+        logger.debug("Received data for handling: " + data);
         if (dataIsNotNull && dataStartsWithLOrJ) {
             data = data.substring(2);
             try {
+                ObjectMapper om = new ObjectMapper();
+                Lobby lob = om.readValue(data, Lobby.class);
+                ogLobby = lob;
+                allLobies.add(ogLobby);
+                /*
                 ObjectMapper objectMapper = new ObjectMapper();
                 JsonNode rootNode = objectMapper.readTree(data);
+                logger.debug("Root node: " + rootNode.asText());
                 if (rootNode.fields().hasNext()) {
                     Map.Entry<String, JsonNode> entry = rootNode.fields().next();
-                    String lobbyName = entry.getKey();
                     JsonNode lobbyNode = entry.getValue();
-                    ogLobby.setName(lobbyName);
+                    logger.debug("Lobby node: " + lobbyNode);
+                    ogLobby.setName(lobbyNode.asText());
+                    logger.debug("Lobby name set in variable: " + ogLobby.getName());
 
                     List<Player> players = new ArrayList<>();
                     JsonNode playersNode = lobbyNode.path("players");
+                    logger.debug("Players node hodnota as text: " + playersNode.asText());
                     for (JsonNode playerNode : playersNode) {
                         if (playerNode != null && playerNode.has("name")) {
+                            logger.debug("Player node hodnota as text: " + playerNode.path("name").asText());
                             Player player = new Player();
                             player.setName(playerNode.path("name").asText());
                             players.add(player);
@@ -388,7 +397,7 @@ public class LobbyController {
                     for (Player player : ogLobby.getPlayers()) {
                         logger.info("Player name: " + player.getName());
                     }
-                }
+                }*/
             } catch (IOException e) {
                 logger.error("Error processing JSON response.", e);
             }

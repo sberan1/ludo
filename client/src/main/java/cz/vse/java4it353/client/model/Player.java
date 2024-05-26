@@ -5,11 +5,13 @@ import java.util.List;
 
 public class Player {
     private String name;
-    private List<Token> tokens;
+    private List<Token> tokens = new ArrayList<>();
 
     public Player() {
-        this.tokens = new ArrayList<>();
+
     }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+    public List<Token> getTokens() { return tokens; }
+    public void setTokens(List<Token> tokens) { this.tokens = tokens; }
 }
