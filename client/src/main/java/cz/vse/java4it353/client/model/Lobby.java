@@ -1,11 +1,14 @@
 package cz.vse.java4it353.client.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Lobby {
     private String name;
     private List<Player> players;
+    private Map<String, Player> playerMap;
     private Board boardState;
     private boolean started;
 

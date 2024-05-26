@@ -1,5 +1,8 @@
 package cz.vse.java4it353.client;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.vse.java4it353.client.model.Lobby;
@@ -364,40 +367,24 @@ public class LobbyController {
         if (dataIsNotNull && dataStartsWithLOrJ) {
             data = data.substring(2);
             try {
-                ObjectMapper om = new ObjectMapper();
-                Lobby lob = om.readValue(data, Lobby.class);
-                ogLobby = lob;
-                allLobies.add(ogLobby);
-                /*
                 ObjectMapper objectMapper = new ObjectMapper();
-                JsonNode rootNode = objectMapper.readTree(data);
-                logger.debug("Root node: " + rootNode.asText());
-                if (rootNode.fields().hasNext()) {
-                    Map.Entry<String, JsonNode> entry = rootNode.fields().next();
-                    JsonNode lobbyNode = entry.getValue();
-                    logger.debug("Lobby node: " + lobbyNode);
-                    ogLobby.setName(lobbyNode.asText());
-                    logger.debug("Lobby name set in variable: " + ogLobby.getName());
+                Lobby lobby;
 
-                    List<Player> players = new ArrayList<>();
-                    JsonNode playersNode = lobbyNode.path("players");
-                    logger.debug("Players node hodnota as text: " + playersNode.asText());
-                    for (JsonNode playerNode : playersNode) {
-                        if (playerNode != null && playerNode.has("name")) {
-                            logger.debug("Player node hodnota as text: " + playerNode.path("name").asText());
-                            Player player = new Player();
-                            player.setName(playerNode.path("name").asText());
-                            players.add(player);
-                        }
-                    }
-                    ogLobby.setPlayers(players);
-                    allLobies.add(ogLobby);
+                try {
+                    // Pokus o načtení JSONu ve formátu {"fff":{"name":"fff",...}}
+                    Map<String, Lobby> lobbyMap = objectMapper.readValue(data, new TypeReference<Map<String, Lobby>>() {});
+                    lobby = lobbyMap.values().iterator().next();
+                } catch (JsonMappingException ex) {
+                    // Pokud selže, zkusíme načíst JSON ve formátu {"name":"fff",...}
+                    lobby = objectMapper.readValue(data, Lobby.class);
+                }
 
-                    logger.info("Lobby name: " + ogLobby.getName());
-                    for (Player player : ogLobby.getPlayers()) {
-                        logger.info("Player name: " + player.getName());
-                    }
-                }*/
+                allLobies.add(lobby);
+
+            } catch (JsonMappingException ex) {
+                logger.error("JSONMAPPINGEXCEPTION", ex);
+            } catch (JsonProcessingException ex) {
+                logger.error("JSONPROCESSINGEXCEPTION", ex);
             } catch (IOException e) {
                 logger.error("Error processing JSON response.", e);
             }
