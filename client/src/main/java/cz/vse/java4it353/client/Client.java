@@ -20,7 +20,7 @@ public class Client {
     private Listener listener;
     private Thread listenerThread;
     private static Client instance = null;
-
+    private String lastResponse = "";
 
     private Client() throws IOException {
         startConnection();
@@ -29,9 +29,14 @@ public class Client {
     public static Client getInstance() throws IOException {
         if (instance == null) {
             instance = new Client();
-
         }
         return instance;
+    }
+    public void setLastResponse(String response) {
+        this.lastResponse = response;
+    }
+    public String getLastResponse() {
+        return lastResponse;
     }
     private void startConnection() throws IOException {
         clientSocket = new Socket("127.0.0.1", 12345);

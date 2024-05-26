@@ -71,6 +71,7 @@
             <Button fx:id="joinLobbyButton" layoutX="448.0" layoutY="217.0" mnemonicParsing="false" onAction="#joinLobby" text="Připojit se do lobby" />
             <Button fx:id="startGameButton" layoutX="283.0" layoutY="163.0" mnemonicParsing="false" onAction="#handleStartGame" text="Spustit hru" />
             <Button fx:id="buttonChooseColor" layoutX="82.0" layoutY="283.0" mnemonicParsing="false" onAction="#handleChooseColor" text="Zvolit barvu" />
+            <Button fx:id="btnRefresh" layoutX="292.0" layoutY="83.0" mnemonicParsing="false" onAction="#refresh" text="Refresh" />
       </children>
     </AnchorPane>
   </children>

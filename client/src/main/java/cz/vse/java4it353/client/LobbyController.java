@@ -2,9 +2,12 @@ package cz.vse.java4it353.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cz.vse.java4it353.client.model.Lobby;
+import cz.vse.java4it353.client.model.Player;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -38,9 +41,11 @@ public class LobbyController {
     @FXML
     public Button buttonChooseColor;
     private Map<String, List<String>> lobbyPlayersMap = new HashMap<>();
+    private List<Lobby> allLobies = new ArrayList<>();
     private static LobbyController instance;
     private Client client;
-
+    private Lobby ogLobby = new Lobby();
+    private Player ogPlayer = new Player();
     @FXML
     private ListView<String> playersListView;
     @FXML
@@ -68,39 +73,34 @@ public class LobbyController {
             client = Client.getInstance();
             pw = client.pw;
             in = client.in;
-
-            String command = "L " + Main.playerName;
-            String response = client.send(command);
-            if (response != null) {
-                if (response.startsWith("L ")) {
-                    response = response.substring(2);
-                    logger.info("ODSTRANĚNÍ ZNAKU L");
-                }
-                processLobbies(response);
-            }
-            lobbiesListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-                if (newValue != null) {
-                    updatePlayersListView(newValue);
-                }
-            });
-
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            logger.error("Špatná inicializace LobbyController: " + e.getMessage());
         }
     }
 
     private void updateLobbiesListView() {
-        ObservableList<String> lobbies = FXCollections.observableArrayList(lobbyPlayersMap.keySet());
-        lobbiesListView.setItems(lobbies);
+        List<String> lobbyNames = new ArrayList<>();
+        for (Lobby lobby : allLobies) {
+            lobbyNames.add(lobby.getName());
+        }
+        ObservableList<String> observableLobbyNames = FXCollections.observableArrayList(lobbyNames);
+        lobbiesListView.setItems(observableLobbyNames);
     }
 
-    private void updatePlayersListView(String lobbyName) {
-        List<String> players = lobbyPlayersMap.getOrDefault(lobbyName, Collections.emptyList());
-        logger.debug("Players in updatePlayersListView: " + players.toString());
-        ObservableList<String> playerNames = FXCollections.observableArrayList(players);
-        logger.debug("Player names in updatePlayersListView: " + playerNames.toString());
-        playersListView.setItems(playerNames);
-        logger.debug("playersListView: " + playersListView);
+    private void updatePlayersListView() {
+        String selectedLobby = lobbiesListView.getSelectionModel().getSelectedItem();
+        List<Player> players = new ArrayList<>();
+        List<String> playerNames = new ArrayList<>();
+        for (Lobby lobby : allLobies) {
+            if(lobby.getName().equalsIgnoreCase(selectedLobby)) {
+                players = lobby.getPlayers();
+            }
+        }
+        for (Player player : players) {
+            playerNames.add(player.getName());
+        }
+        ObservableList<String> observablePlayerNames = FXCollections.observableArrayList(playerNames);
+        lobbiesListView.setItems(observablePlayerNames);
     }
 
     @FXML
@@ -193,7 +193,7 @@ public class LobbyController {
                     players.add(Main.playerName);
                     lobbyPlayersMap.put(lobbyNameFromResponse, players);
 
-                    updatePlayersListView(lobbyNameFromResponse);
+                    updatePlayersListView();
                 } else {
                     logger.error("JSON response does not contain expected 'name' field: " + response);
                 }
@@ -281,7 +281,7 @@ public class LobbyController {
                             logger.debug("Players map: " + lobbyPlayersMap.toString());
 
                             Platform.runLater(() -> {
-                                updatePlayersListView(lobbyName);
+                                updatePlayersListView();
                             });
                         } else {
                             logger.error("JSON response does not contain expected 'name' field: " + response);
@@ -302,13 +302,8 @@ public class LobbyController {
         }
     }
 
-    private void updatePlayersList(JsonNode players) {
-        playersListView.getItems().clear();
-        for (JsonNode player : players) {
-            if (player != null && player.has("name")) {
-                playersListView.getItems().add(player.get("name").asText());
-            }
-        }
+    private void updatePlayersList() {
+
     }
 
     public String send(String data) {
@@ -337,5 +332,46 @@ public class LobbyController {
 
     public void stop() {
         executorService.shutdown();
+    }
+
+    public void refresh(ActionEvent actionEvent) {
+        logger.debug(client.getLastResponse());
+        handleServerResponse(client.getLastResponse());
+    }
+    private void handleServerResponse(String data) {
+        if (data != null && data.startsWith("L ")) {
+            data = data.substring(2);
+            try {
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode rootNode = objectMapper.readTree(data);
+                if (rootNode.fields().hasNext()) {
+                    Map.Entry<String, JsonNode> entry = rootNode.fields().next();
+                    String lobbyName = entry.getKey();
+                    JsonNode lobbyNode = entry.getValue();
+                    ogLobby.setName(lobbyName);
+
+                    List<Player> players = new ArrayList<>();
+                    JsonNode playersNode = lobbyNode.path("players");
+                    for (JsonNode playerNode : playersNode) {
+                        if (playerNode != null && playerNode.has("name")) {
+                            Player player = new Player();
+                            player.setName(playerNode.path("name").asText());
+                            players.add(player);
+                        }
+                    }
+                    ogLobby.setPlayers(players);
+                    allLobies.add(ogLobby);
+
+                    logger.info("Lobby name: " + ogLobby.getName());
+                    for (Player player : ogLobby.getPlayers()) {
+                        logger.info("Player name: " + player.getName());
+                    }
+                }
+            } catch (IOException e) {
+                logger.error("Error processing JSON response.", e);
+            }
+        }
+        updateLobbiesListView();
+        updatePlayersList();
     }
 }

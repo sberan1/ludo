@@ -58,7 +58,8 @@ public class Main extends Application {
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-                client.send("L " + playerName);
+                String response = client.send("L " + playerName);
+                client.setLastResponse(response);
                 log.info("Login command with name " + playerName + " has been sent");
             }).start();
         }
@@ -75,20 +76,5 @@ public class Main extends Application {
     public void stop() throws Exception {
         Client.getInstance().closeConnection();
         super.stop();
-    }
-
-    public static void showLobby() {
-        Platform.runLater(() -> {
-            try {
-                FXMLLoader loader = new FXMLLoader(Main.class.getResource("/lobby.fxml"));
-                Scene scene = new Scene(loader.load());
-                lobbyController = loader.getController(); // Get the controller instance
-                primaryStage.setScene(scene);
-                primaryStage.setTitle("Lobby");
-                primaryStage.show();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
     }
 }
