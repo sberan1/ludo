@@ -13,10 +13,10 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import javafx.application.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -53,7 +53,6 @@ public class LobbyController {
     private PrintWriter pw;
     private BufferedReader in;
     private String offLobbyName = "";
-    // Using a fixed thread pool for managing multiple threads
     private static final ExecutorService executorService = Executors.newCachedThreadPool();
 
     public LobbyController() {
@@ -65,7 +64,6 @@ public class LobbyController {
     }
 
     public void initialize() {
-        // Initialize components if needed
         try {
             client = Client.getInstance();
             pw = client.pw;
@@ -121,7 +119,9 @@ public class LobbyController {
             }
         };
 
-        task.setOnSucceeded(event -> logger.info("Color choice sent: " + finalColor));
+        task.setOnSucceeded(event -> {
+            logger.info("Color choice sent: " + finalColor);
+        });
 
         task.setOnFailed(event -> {
             Throwable e = task.getException();
@@ -143,20 +143,22 @@ public class LobbyController {
 
         task.setOnSucceeded(event -> {
             logger.info("Start game command sent");
-            // Close the current window and show the game window
-            Stage stage = (Stage) playersListView.getScene().getWindow();
-            stage.close();
+            Platform.runLater(() -> {
+                // Close the current window and show the game window
+                Stage stage = (Stage) playersListView.getScene().getWindow();
+                stage.close();
 
-            // Show aplikace.fxml
-            try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/aplikace.fxml"));
-                Stage gameStage = new Stage();
-                gameStage.setScene(new Scene(loader.load()));
-                gameStage.setTitle("Game");
-                gameStage.show();
-            } catch (IOException e) {
-                logger.error("Error loading aplikace.fxml", e);
-            }
+                // Show aplikace.fxml
+                try {
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/aplikace.fxml"));
+                    Stage gameStage = new Stage();
+                    gameStage.setScene(new Scene(loader.load()));
+                    gameStage.setTitle("Game");
+                    gameStage.show();
+                } catch (IOException e) {
+                    logger.error("Error loading aplikace.fxml", e);
+                }
+            });
         });
 
         task.setOnFailed(event -> {
@@ -208,7 +210,6 @@ public class LobbyController {
 
             lobbyPlayersMap.clear();
 
-            // Zpracování hlavního uzlu JSON odpovědi
             if (rootNode.isObject()) {
                 rootNode.fields().forEachRemaining(entry -> {
                     String lobbyName = entry.getKey();
@@ -263,12 +264,10 @@ public class LobbyController {
                         JsonNode lobbyNode = objectMapper.readTree(response);
                         logger.debug("Lobby node: " + lobbyNode.asText());
 
-                        // Kontrola, zda JSON obsahuje klíč 'name'
                         if (lobbyNode != null && lobbyNode.has("name")) {
                             String lobbyName = lobbyNode.get("name").asText();
                             logger.debug("Lobby name: " + lobbyName);
 
-                            // Aktualizace lobbyPlayersMap
                             List<String> players = new ArrayList<>();
                             JsonNode playersNode = lobbyNode.get("players");
                             logger.debug("All players node: " + playersNode.asText());
@@ -281,9 +280,9 @@ public class LobbyController {
                             lobbyPlayersMap.put(lobbyName, players);
                             logger.debug("Players map: " + lobbyPlayersMap.toString());
 
-                            // Aktualizace playersListView
-                            logger.debug("Updating players list view");
-                            updatePlayersListView(lobbyName);
+                            Platform.runLater(() -> {
+                                updatePlayersListView(lobbyName);
+                            });
                         } else {
                             logger.error("JSON response does not contain expected 'name' field: " + response);
                         }
