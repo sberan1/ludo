@@ -73,10 +73,31 @@ public class LobbyController {
             client = Client.getInstance();
             pw = client.pw;
             in = client.in;
+            lobbiesListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+                if (newValue != null) {
+                    handleLobbySelection(newValue);
+                }
+            });
+
+
         } catch (IOException e) {
             logger.error("Špatná inicializace LobbyController: " + e.getMessage());
         }
     }
+
+    private void handleLobbySelection(String lobbyName) {
+        // Najděte vybranou lobby v seznamu allLobbies
+        Lobby selectedLobby = allLobies.stream()
+                .filter(lobby -> lobby.getName().equals(lobbyName))
+                .findFirst()
+                .orElse(null);
+
+        if (selectedLobby != null) {
+            // Aktualizujte seznam hráčů ve vybrané lobby
+            updatePlayersListView(selectedLobby.getName());
+        }
+    }
+
 
     private void updateLobbiesListView() {
         List<String> lobbyNames = new ArrayList<>();
@@ -87,8 +108,7 @@ public class LobbyController {
         lobbiesListView.setItems(observableLobbyNames);
     }
 
-    private void updatePlayersListView() {
-        String selectedLobby = lobbiesListView.getSelectionModel().getSelectedItem();
+    private void updatePlayersListView(String selectedLobby) {
         List<Player> players = new ArrayList<>();
         List<String> playerNames = new ArrayList<>();
         for (Lobby lobby : allLobies) {
@@ -193,7 +213,7 @@ public class LobbyController {
                     players.add(Main.playerName);
                     lobbyPlayersMap.put(lobbyNameFromResponse, players);
 
-                    updatePlayersListView();
+                    //updatePlayersListView();
                 } else {
                     logger.error("JSON response does not contain expected 'name' field: " + response);
                 }
@@ -281,7 +301,7 @@ public class LobbyController {
                             logger.debug("Players map: " + lobbyPlayersMap.toString());
 
                             Platform.runLater(() -> {
-                                updatePlayersListView();
+                                //updatePlayersListView();
                             });
                         } else {
                             logger.error("JSON response does not contain expected 'name' field: " + response);
@@ -339,7 +359,9 @@ public class LobbyController {
         handleServerResponse(client.getLastResponse());
     }
     private void handleServerResponse(String data) {
-        if (data != null && data.startsWith("L ")) {
+        boolean dataStartsWithLOrJ = data.startsWith("L ") || data.startsWith("J ");
+        boolean dataIsNotNull = data != null;
+        if (dataIsNotNull && dataStartsWithLOrJ) {
             data = data.substring(2);
             try {
                 ObjectMapper objectMapper = new ObjectMapper();
