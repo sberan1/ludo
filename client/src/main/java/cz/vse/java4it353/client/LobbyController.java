@@ -14,10 +14,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.ListView;
-import javafx.scene.control.RadioButton;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.stage.Stage;
 import javafx.application.Platform;
 import org.slf4j.Logger;
@@ -44,11 +41,13 @@ public class LobbyController {
     public RadioButton rbZelena;
     @FXML
     public Button buttonChooseColor;
+    @FXML
+    public Label labelColor;
     private Map<String, List<String>> lobbyPlayersMap = new HashMap<>();
     private List<Lobby> allLobies = new ArrayList<>();
     private static LobbyController instance;
     private Client client;
-    private Lobby ogLobby = new Lobby();
+    private Lobby ogLobby;
     private Player ogPlayer = new Player();
     @FXML
     private ListView<String> playersListView;
@@ -77,6 +76,7 @@ public class LobbyController {
             client = Client.getInstance();
             pw = client.pw;
             in = client.in;
+            startServerListener();
             lobbiesListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
                 if (newValue != null) {
                     handleLobbySelection(newValue);
@@ -87,6 +87,26 @@ public class LobbyController {
         } catch (IOException e) {
             logger.error("Špatná inicializace LobbyController: " + e.getMessage());
         }
+    }
+    private void startServerListener() {
+        Task<Void> task = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                String message;
+                while ((message = in.readLine()) != null) {
+                    String finalMessage = message;
+                    Platform.runLater(() -> handleServerResponse(finalMessage));
+                }
+                return null;
+            }
+        };
+
+        task.setOnFailed(event -> {
+            Throwable e = task.getException();
+            logger.error("Failed to listen to server", e);
+        });
+
+        executorService.submit(task);
     }
 
     private void handleLobbySelection(String selectedLobbyName) {
@@ -112,36 +132,11 @@ public class LobbyController {
 
 
     private void updateLobbiesListView() {
-        List<String> lobbyNames = new ArrayList<>();
-        for (Lobby lobby : allLobies) {
-            lobbyNames.add(lobby.getName());
-        }
+        List<String> lobbyNames = allLobies.stream()
+                .map(Lobby::getName)
+                .collect(Collectors.toList());
         ObservableList<String> observableLobbyNames = FXCollections.observableArrayList(lobbyNames);
         lobbiesListView.setItems(observableLobbyNames);
-    }
-
-    private void updatePlayersListView(String selectedLobby) {
-        List<Player> players = new ArrayList<>();
-        List<String> playerNames = new ArrayList<>();
-        for (Lobby lobby : allLobies) {
-            if(lobby.getName().equalsIgnoreCase(selectedLobby)) {
-                players = lobby.getPlayers();
-                break;
-            }
-        }
-        if (!players.isEmpty()) {
-            for (Player player : players) {
-                if (player != null && player.getName() != null) {
-                    playerNames.add(player.getName());
-                }
-            }
-
-            ObservableList<String> observablePlayerNames = FXCollections.observableArrayList(playerNames);
-            lobbiesListView.setItems(observablePlayerNames);
-        } else {
-            // Pokud seznam hráčů je prázdný, vyčistí se ListView
-            lobbiesListView.getItems().clear();
-        }
     }
 
     @FXML
@@ -152,16 +147,17 @@ public class LobbyController {
         else if(rbZelena.isSelected()) color = "GREEN";
 
         String finalColor = color;
-        Task<Void> task = new Task<Void>() {
+        Task<String> task = new Task<String>() {
             @Override
-            protected Void call() throws Exception {
-                client.send("CC " + finalColor);
-                return null;
+            protected String call() throws Exception {
+                String command = "CC " + finalColor;
+                return client.send(command);
             }
         };
 
         task.setOnSucceeded(event -> {
-            logger.info("Color choice sent: " + finalColor);
+            logger.debug("Úspěšný task handleChooseColor");
+            labelColor.setText(labelColor.getText() + finalColor);
         });
 
         task.setOnFailed(event -> {
@@ -214,43 +210,26 @@ public class LobbyController {
     private void createLobby() {
         try {
             String lobbyName = lobbyNameInput.getText();
-            String response = client.send("C " + lobbyName);
-            if (response != null) {
+            Task<String> task = new Task<String>() {
+                @Override
+                protected String call() throws Exception {
+                    return client.send("C " + lobbyName);
+                }
+            };
+
+            task.setOnSucceeded(event -> {
+                String response = task.getValue();
                 handleServerResponse(response);
-            }
+            });
+
+            task.setOnFailed(event -> {
+                Throwable e = task.getException();
+                logger.error("Failed to send create lobby command", e);
+            });
+
+            executorService.submit(task);
         } catch (Exception e) {
             logger.error("Failed to send create lobby command.", e);
-        }
-    }
-
-    private void processLobbies(String jsonResponse) {
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode rootNode = objectMapper.readTree(jsonResponse);
-
-            lobbyPlayersMap.clear();
-
-            if (rootNode.isObject()) {
-                rootNode.fields().forEachRemaining(entry -> {
-                    String lobbyName = entry.getKey();
-                    JsonNode lobbyNode = entry.getValue();
-
-                    JsonNode playersNode = lobbyNode.path("players");
-
-                    List<String> players = new ArrayList<>();
-                    for (JsonNode playerNode : playersNode) {
-                        if (playerNode != null && playerNode.has("name")) {
-                            players.add(playerNode.path("name").asText());
-                        }
-                    }
-
-                    lobbyPlayersMap.put(lobbyName, players);
-                });
-            }
-
-            updateLobbiesListView();
-        } catch (IOException e) {
-            logger.error("Error processing JSON response.", e);
         }
     }
 
@@ -291,36 +270,42 @@ public class LobbyController {
         handleServerResponse(client.getFirstResponse());
     }
     private void handleServerResponse(String data) {
-        boolean dataStartsWithLOrJ = data.startsWith("L ") || data.startsWith("J ");
-        boolean dataIsNotNull = data != null;
-        logger.debug("Data starts with L or J: " + dataStartsWithLOrJ);
-        logger.debug("Data is not null: " + dataIsNotNull);
-        logger.debug("Received data for handling: " + data);
-        if (dataIsNotNull && dataStartsWithLOrJ) {
-            data = data.substring(2);
+        if (data != null && (data.startsWith("L ") || data.startsWith("J "))) {
+            data = data.substring(2); // Odstraňte prefix "L " nebo "J "
+            logger.debug("Processed data: " + data);
             try {
                 ObjectMapper objectMapper = new ObjectMapper();
-                Lobby lobby;
+                // Zjistíme, zda je JSON mapou nebo jednotlivým objektem
+                JsonNode jsonNode = objectMapper.readTree(data);
+                Lobby lobby = null;
 
-                try {
-                    // Pokus o načtení JSONu ve formátu {"fff":{"name":"fff",...}}
-                    Map<String, Lobby> lobbyMap = objectMapper.readValue(data, new TypeReference<Map<String, Lobby>>() {});
+                if (jsonNode.isObject() && jsonNode.size() == 1) {
+                    // JSON je mapa
+                    Map<String, Lobby> lobbyMap = objectMapper.convertValue(jsonNode, new TypeReference<Map<String, Lobby>>() {});
                     lobby = lobbyMap.values().iterator().next();
-                } catch (JsonMappingException ex) {
-                    // Pokud selže, zkusíme načíst JSON ve formátu {"name":"fff",...}
-                    lobby = objectMapper.readValue(data, Lobby.class);
+                } else if (jsonNode.isObject()) {
+                    // JSON je jednotlivý objekt
+                    lobby = objectMapper.convertValue(jsonNode, Lobby.class);
                 }
 
-                allLobies.add(lobby);
+                if (lobby != null) {
+                    final Lobby finalLobby = lobby;
+                    Platform.runLater(() -> {
+                        allLobies.add(finalLobby);
+                        updateLobbiesListView();
+                    });
+                }
 
             } catch (JsonMappingException ex) {
                 logger.error("JSONMAPPINGEXCEPTION", ex);
+                logger.error("Data: " + data);
             } catch (JsonProcessingException ex) {
                 logger.error("JSONPROCESSINGEXCEPTION", ex);
+                logger.error("Data: " + data);
             } catch (IOException e) {
                 logger.error("Error processing JSON response.", e);
+                logger.error("Data: " + data);
             }
         }
-        updateLobbiesListView();
     }
 }

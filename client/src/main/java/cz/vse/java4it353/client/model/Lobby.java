@@ -1,5 +1,8 @@
 package cz.vse.java4it353.client.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,9 +15,17 @@ public class Lobby {
     private Board boardState;
     private boolean started;
 
-    public Lobby() {
-        this.players = new ArrayList<>();
-        this.boardState = new Board();
+    @JsonCreator
+    public Lobby(
+            @JsonProperty("name") String name,
+            @JsonProperty("players") List<Player> players,
+            @JsonProperty("boardState") Board boardState,
+            @JsonProperty("started") boolean started
+    ) {
+        this.name = name;
+        this.players = players != null ? players : new ArrayList<>();
+        this.boardState = boardState != null ? boardState : new Board();
+        this.started = started;
     }
     public String getName() {
         return name;

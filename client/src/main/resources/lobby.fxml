@@ -33,6 +33,7 @@
 -->
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.TextField?>
@@ -72,6 +73,7 @@
             <Button fx:id="startGameButton" layoutX="283.0" layoutY="163.0" mnemonicParsing="false" onAction="#handleStartGame" text="Spustit hru" />
             <Button fx:id="buttonChooseColor" layoutX="82.0" layoutY="283.0" mnemonicParsing="false" onAction="#handleChooseColor" text="Zvolit barvu" />
             <Button fx:id="btnRefresh" layoutX="292.0" layoutY="83.0" mnemonicParsing="false" onAction="#refresh" text="Refresh" />
+            <Label fx:id="labelColor" layoutX="287.0" layoutY="129.0" text="Moje barva: " />
       </children>
     </AnchorPane>
   </children>
