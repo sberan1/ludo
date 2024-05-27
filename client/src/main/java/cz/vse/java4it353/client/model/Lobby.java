@@ -58,4 +58,20 @@ public class Lobby {
     public void setStarted(boolean started) {
         this.started = started;
     }
+    public int getNumOfPlayers() {
+        int i = 0;
+        for(Player player: players) {
+            if(player != null)
+                i++;
+        }
+        return i;
+    }
+    public boolean isPlayerInLobby(String name) {
+        for (Player player: players) {
+            if(player != null && player.getName() == name) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

@@ -270,7 +270,9 @@ public class LobbyController {
         handleServerResponse(client.getFirstResponse());
     }
     private void handleServerResponse(String data) {
-        if (data != null && (data.startsWith("L ") || data.startsWith("J "))) {
+        boolean dataIsNotNull = data != null;
+        boolean dataStartsWithLOrJ = (data.startsWith("L ") || data.startsWith("J "));
+        if (dataIsNotNull && dataStartsWithLOrJ) {
             data = data.substring(2); // Odstraňte prefix "L " nebo "J "
             logger.debug("Processed data: " + data);
             try {
