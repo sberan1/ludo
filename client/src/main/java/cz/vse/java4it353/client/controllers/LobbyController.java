@@ -7,6 +7,7 @@ import cz.vse.java4it353.client.commands.CommandFactory;
 import cz.vse.java4it353.client.commands.ICommand;
 import cz.vse.java4it353.client.model.Lobby;
 import cz.vse.java4it353.client.model.Player;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -128,7 +129,7 @@ public class LobbyController implements MessageObserver, Observer {
     }
 
     public void refresh(ActionEvent actionEvent) {
-
+        client.send("L ");
     }
     private void handleResponseFromServer(String data) throws Exception {
         log.debug("string před rozdělením: " + data);
@@ -155,16 +156,6 @@ public class LobbyController implements MessageObserver, Observer {
     public void update(Observable o, Object arg) {
         int pocetLobbies = (int) allLobies.stream().count();
         log.debug("INFORMACE O LOBBIES PŘED UPDATE! POČET LOBBIES: " + pocetLobbies);
-
-        for(Lobby lobby: allLobies) {
-            if(lobby != null) {
-                for(Player player: lobby.getPlayers()) {
-                    if(player != null) {
-                        log.debug(player.getName());
-                    }
-                }
-            }
-        }
 
         if(arg instanceof Lobby) {
             Lobby newLobby = (Lobby) arg;
@@ -201,6 +192,8 @@ public class LobbyController implements MessageObserver, Observer {
                 }
             }
         }
-        updateLobbiesListView();
+        Platform.runLater(() -> { // Změna UI prvků musí proběhnout v hlavním vlákně
+            updateLobbiesListView();
+        });
     }
 }
