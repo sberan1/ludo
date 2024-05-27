@@ -151,7 +151,7 @@ public class LobbyController {
             @Override
             protected String call() throws Exception {
                 String command = "CC " + finalColor;
-                return client.send(command);
+                return "";//client.send(command);
             }
         };
 
@@ -213,7 +213,7 @@ public class LobbyController {
             Task<String> task = new Task<String>() {
                 @Override
                 protected String call() throws Exception {
-                    return client.send("C " + lobbyName);
+                    return "";//client.send("C " + lobbyName);
                 }
             };
 
@@ -243,7 +243,7 @@ public class LobbyController {
                 @Override
                 protected String call() throws Exception {
                     String command = "J " + selectedLobby;
-                    return client.send(command);
+                    return "";//client.send(command);
                 }
             };
 
@@ -266,8 +266,8 @@ public class LobbyController {
     }
 
     public void refresh(ActionEvent actionEvent) {
-        logger.debug(client.getFirstResponse());
-        handleServerResponse(client.getFirstResponse());
+        //logger.debug(client.getFirstResponse());
+        //handleServerResponse(client.getFirstResponse());
     }
     private void handleServerResponse(String data) {
         boolean dataIsNotNull = data != null;

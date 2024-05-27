@@ -205,7 +205,8 @@
             <ImageView fx:id="z43" fitHeight="36.0" fitWidth="37.0" layoutX="448.0" layoutY="332.0" pickOnBounds="true" preserveRatio="true" />
             <ImageView fx:id="z42" fitHeight="36.0" fitWidth="37.0" layoutX="508.0" layoutY="332.0" pickOnBounds="true" preserveRatio="true" />
             <ImageView fx:id="z41" fitHeight="36.0" fitWidth="37.0" layoutX="567.0" layoutY="332.0" pickOnBounds="true" preserveRatio="true" />
-            <Button fx:id="btnStart" mnemonicParsing="false" prefHeight="955.0" prefWidth="703.0" onAction="#firstStart" text="KLIKNI NA MĚ A SPUSŤ HRU" />
+            <Button fx:id="btnStart" mnemonicParsing="false" onAction="#firstStart" prefHeight="955.0" prefWidth="703.0" text="KLIKNI NA MĚ A SPUSŤ HRU" />
+            <Button fx:id="startGame" layoutX="600.0" layoutY="861.0" mnemonicParsing="false" text="Button" />
          </children>
     </AnchorPane>
   </children>

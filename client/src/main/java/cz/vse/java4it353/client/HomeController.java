@@ -26,7 +26,7 @@ import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 
-public class HomeController {
+public class HomeController implements MessageObserver {
     private static final Logger log = LoggerFactory.getLogger(HomeController.class);
 
     private int moveToken = 0;
@@ -193,6 +193,12 @@ public class HomeController {
     @FXML
     private ImageView z41;
     public void initialize() {
+        try {
+            client = Client.getInstance();
+            client.addObserver(this);
+        } catch (IOException e) {
+            log.error("Chyba při inicializaci klienta", e);
+        }
         figurka1C.setOnMouseClicked(this::handleFigurkaClick);
         figurka2C.setOnMouseClicked(this::handleFigurkaClick);
         figurka3C.setOnMouseClicked(this::handleFigurkaClick);
@@ -314,6 +320,7 @@ public class HomeController {
     private CountDownLatch latch;
     @FXML
     private Button btnStart;
+    private String response;
     @FXML
     private void firstStart() {
         btnStart.setVisible(false);
@@ -322,57 +329,75 @@ public class HomeController {
             @Override
             protected Void call() throws Exception {
                 try {
-                    client = Client.getInstance();
-                    String response = client.send("L " + Main.PLAYER_NAME);
-                    log.debug("Odpověď serveru v HomeControlleru: " + response);
+                    client.send("L " + Main.PLAYER_NAME);
+                    log.debug("Odeslán dotaz na server s přihlášením hráče: " + Main.PLAYER_NAME);
 
-                    Platform.runLater(() -> chatTextArea.setText("Přihlášen uživatel " + Main.PLAYER_NAME));
+                    latch = new CountDownLatch(1);
+                    latch.await();
 
-                    if (response.length() == 4) {
+                    if (response.equals("{}")) {
                         log.info("Vytváření náhodného názvu lobby");
                         String randomLobbyName = UUID.randomUUID().toString();
                         log.debug("Náhodný název lobby: " + randomLobbyName);
-                        response = client.send("C " + randomLobbyName);
+                        client.send("C " + randomLobbyName);
 
-                        String finalResponse = response;
-                        Platform.runLater(() -> chatTextArea.appendText("\nVytváření lobby s názvem " + finalResponse));
+                        latch = new CountDownLatch(1);
+                        latch.await();
+
+                        Platform.runLater(() -> chatTextArea.appendText("\nVytváření lobby s názvem " + randomLobbyName));
+                    } else {
+                        handleServerResponse(response);
                     }
-                    log.info("Zpracovávání odpovědi");
-                    latch = new CountDownLatch(1);
-                    handleServerResponse(response);
-                    latch.await();
+
                     log.info("Odpověď od serveru byla zpracována, nyní se pokusím připojit do lobby, která mě vezme");
                     for (Lobby lobby : allLobies) {
                         log.debug("Procházím lobby " + lobby.getName());
                         if (lobby.getNumOfPlayers() < 4 && !lobby.isPlayerInLobby(Main.PLAYER_NAME)) {
                             log.info("Lobby nalezena, pokus o připojení do ní");
-                            response = client.send("J " + lobby.getName());
-                            log.debug("Odpověď po pokusu o připojení do lobby: " + response);
-                            handleServerResponse(response);
+                            client.send("J " + lobby.getName());
+
+                            latch = new CountDownLatch(1);
+                            latch.await();
+
                             final String lobbyName = lobby.getName();
                             Platform.runLater(() -> chatTextArea.appendText("\nPřipojení do lobby " + lobbyName));
                             aktualniLobby = lobby;
                         }
                     }
+
                     Platform.runLater(() -> {
                         chatTextArea.appendText("\nZávěr připojování, vypisuji informace o lobby.");
-                        chatTextArea.appendText("\nNázev lobby: " + aktualniLobby.getName());
+                        chatTextArea.appendText("\nNázev lobby: " + (aktualniLobby != null ? aktualniLobby.getName() : "null"));
                         chatTextArea.appendText("\nJména všech hráčů v lobby:");
-                        for (Player player : aktualniLobby.getPlayers()) {
-                            chatTextArea.appendText("\n" + player.getName());
+                        if (aktualniLobby != null) {
+                            for (Player player : aktualniLobby.getPlayers()) {
+                                if (player != null) {
+                                    chatTextArea.appendText("\n" + player.getName());
+                                }
+                            }
                         }
                     });
+
                     log.info("Konec metody firstStart");
-                } catch (IOException | InterruptedException e) {
+                } catch (InterruptedException e) {
                     log.error("Stala se chyba.", e);
                 }
                 return null;
             }
         };
 
-        // Spusťte úlohu v novém vlákně
         new Thread(task).start();
     }
+
+    @Override
+    public void onMessageReceived(String message) {
+        Platform.runLater(() -> {
+            log.debug("Přijatá zpráva v HomeControlleru: " + message);
+            response = message;  // Nastavení odpovědi pro latch
+            latch.countDown();   // Uvolnění latch
+        });
+    }
+
     private void handleServerResponse(String data) {
         boolean dataIsNotNull = data != null;
         boolean dataStartsWithLOrJ = (data.startsWith("L ") || data.startsWith("J "));
@@ -411,6 +436,8 @@ public class HomeController {
                     }
                     log.info("Přidávám novou lobby");
                     allLobies.add(finalLobby);
+                    aktualniLobby = finalLobby;  // Nastavení aktuální lobby
+                    log.debug("AktualniLobby nastavena na: " + aktualniLobby.getName());
                     latch.countDown();
                 }
 

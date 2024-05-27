@@ -12,22 +12,22 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Client {
+public class MockClient {
     private static final Logger logger = LoggerFactory.getLogger(Client.class);
     private Socket clientSocket;
     public PrintWriter pw;
     public BufferedReader in;
     private Listener listener;
     private Thread listenerThread;
-    private static Client instance = null;
+    private static MockClient instance = null;
 
-    private Client() throws IOException {
+    private MockClient() throws IOException {
         startConnection();
     }
 
-    public static Client getInstance() throws IOException {
+    public static MockClient getInstance() throws IOException {
         if (instance == null) {
-            instance = new Client();
+            instance = new MockClient();
         }
         return instance;
     }
@@ -40,19 +40,11 @@ public class Client {
         listenerThread.start();
     }
 
-    public void send(String data) {
-        new Thread(() -> {
-            pw.println(data);
-            logger.info("Příkaz odeslán: " + data);
-        }).start();
-    }
-    public void addObserver(MessageObserver observer) {
-        listener.addObserver(observer);
+    public void send() {
+        pw.println("");
+        logger.info("Příkaz mock clienta odeslán");
     }
 
-    public void removeObserver(MessageObserver observer) {
-        listener.removeObserver(observer);
-    }
 
     public void closeConnection() {
         try {
