@@ -18,11 +18,10 @@ public class CommandFactory {
         commandMap.put("R", new RollDiceCommand());
         commandMap.put("M", new MoveTokenCommand());*/
         commandMap.put("L", new SyncLobbiesCommand(o));
+        commandMap.put("J", new CreateLobbyCommand(o));
     }
 
     public ICommand getCommand(String commandKey) {
-
-
         ICommand command = commandMap.get(commandKey);
         if (command == null) {
             logger.warn("Command " + commandKey + " not found");
