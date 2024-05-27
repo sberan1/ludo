@@ -1,9 +1,7 @@
 package cz.vse.java4it353.client.commands;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cz.vse.java4it353.client.HomeController;
 import cz.vse.java4it353.client.model.Lobby;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,22 +1,17 @@
-package cz.vse.java4it353.client;
+package cz.vse.java4it353.client.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import cz.vse.java4it353.client.Client;
+import cz.vse.java4it353.client.Main;
+import cz.vse.java4it353.client.MessageObserver;
 import cz.vse.java4it353.client.commands.CommandFactory;
 import cz.vse.java4it353.client.commands.ICommand;
 import cz.vse.java4it353.client.model.Lobby;
 import cz.vse.java4it353.client.model.Player;
-import javafx.application.Platform;
-import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Pair;
@@ -25,7 +20,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 
 
 public class HomeController implements MessageObserver, Observer {
@@ -326,7 +320,7 @@ public class HomeController implements MessageObserver, Observer {
     @FXML
     private void firstStart() {
         btnStart.setVisible(false);
-        client.send("L " + Main.PLAYER_NAME);
+        client.send("L " + Main.getPlayerName());
     }
 
     @Override
@@ -349,62 +343,6 @@ public class HomeController implements MessageObserver, Observer {
         command.execute(handledData[1]);
     }
 
-    private void handleServerResponse(String data) {
-        log.info("Získal jsem v metodě handleServerResponse data ke zpracování");
-        boolean dataIsNotNull = data != null;
-        boolean dataStartsWithLOrJ = (data.startsWith("L ") || data.startsWith("J "));
-        if (dataIsNotNull && dataStartsWithLOrJ) {
-            data = data.substring(2); // Odstraňte prefix "L " nebo "J "
-            log.debug("Processed data: " + data);
-            try {
-                ObjectMapper objectMapper = new ObjectMapper();
-                log.info("Vytvoření object mapperu");
-                // Zjistíme, zda je JSON mapou nebo jednotlivým objektem
-                JsonNode jsonNode = objectMapper.readTree(data);
-                log.debug("Vytvoření jsonNode, hodnota: " + jsonNode.asText());
-                Lobby lobby = null;
-
-                if (jsonNode.isObject() && jsonNode.size() == 1) {
-                    // JSON je mapa
-                    log.info("JSON je mapa");
-                    Map<String, Lobby> lobbyMap = objectMapper.convertValue(jsonNode, new TypeReference<Map<String, Lobby>>() {});
-                    log.info("Vytvoření mapy");
-                    lobby = lobbyMap.values().iterator().next();
-                } else if (jsonNode.isObject()) {
-                    // JSON je jednotlivý objekt
-                    log.info("JSON je jednotlivý objekt");
-                    lobby = objectMapper.convertValue(jsonNode, Lobby.class);
-                }
-                log.debug("Vytvoření lobby, její hodnota: " + lobby);
-
-                if (lobby != null) {
-                    log.info("Lobby není null");
-                    final Lobby finalLobby = lobby;
-                    int index = allLobies.indexOf(finalLobby);
-                    log.debug("Index lobby v listu: " + index);
-                    if(index != -1) {
-                        log.info("Odstraňuji původní lobby");
-                        allLobies.remove(index);
-                    }
-                    log.info("Přidávám novou lobby");
-                    allLobies.add(finalLobby);
-                    aktualniLobby = finalLobby;  // Nastavení aktuální lobby
-                    log.debug("AktualniLobby nastavena na: " + aktualniLobby.getName());
-                }
-
-            } catch (JsonMappingException ex) {
-                log.error("JSONMAPPINGEXCEPTION", ex);
-                log.error("Data: " + data);
-            } catch (JsonProcessingException ex) {
-                log.error("JSONPROCESSINGEXCEPTION", ex);
-                log.error("Data: " + data);
-            } catch (IOException e) {
-                log.error("Error processing JSON response.", e);
-                log.error("Data: " + data);
-            }
-        }
-    }
-
     @Override
     public void update(Observable o, Object arg) {
         int pocetLobbies = (int) allLobies.stream().count();
@@ -412,8 +350,6 @@ public class HomeController implements MessageObserver, Observer {
 
         for(Lobby lobby: allLobies) {
             if(lobby != null) {
-                log.debug("Název lobby: " + lobby.getName());
-                log.debug("Název hráyčů v lobby:");
                 for(Player player: lobby.getPlayers()) {
                     if(player != null) {
                         log.debug(player.getName());
@@ -423,36 +359,23 @@ public class HomeController implements MessageObserver, Observer {
         }
 
         if(arg instanceof Lobby) {
-            log.debug("ZAČÁTEK SAMOSTATNÉ LOBBY");
-            // do stuff
             Lobby newLobby = (Lobby) arg;
             if(pocetLobbies == 0) {
                 allLobies.add(newLobby);
-                log.debug("Přidání lobby do listu všech lobbies, pokud byl list prázdný");
             }
             else {
-                log.debug("Přidání lobby do listu všech lobbies, pokud nebyl list prázdný");
                 for(Lobby lobby: allLobies) {
-                    log.debug("Procházení lobby s názvem " + lobby.getName() + ", porovnávání s lobby " + newLobby.getName());
                     if(lobby.getName().equalsIgnoreCase(newLobby.getName())) {
-                        log.debug("Byla nalezena lobby se stejným názvem, probíhá přepis");
                         int index = allLobies.indexOf(lobby);
                         allLobies.remove(index);
-                        log.debug("Pokus o přidání lobby do listu s nějakými lobbies ve foru");
                         allLobies.add(newLobby);
-                        log.debug("Lobby přidána do listu s nějakými lobbies ve foru");
                     }
                 }
-                log.debug("Pokus o přidání lobby do listu s nějakými lobbies mimo for");
                 allLobies.add(newLobby);
-                log.debug("Lobby přidána do listu s nějakými lobbies mimo for");
             }
-            log.debug("KONEC SAMOSTATNÉ LOBBY");
         }
         else if(arg instanceof List) {
-            log.debug("ZAČÁTEK LIST S LOBBY");
             List<Lobby> newLobbies = (List<Lobby>) arg;
-            log.debug("KONEC LIST S LOBBY");
             allLobies = newLobbies;
         }
 
@@ -470,7 +393,6 @@ public class HomeController implements MessageObserver, Observer {
                 }
             }
         }
-        log.debug("Závěr metody @update");
     }
 
     public void createLobby(ActionEvent actionEvent) {

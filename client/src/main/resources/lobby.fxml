@@ -43,7 +43,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<VBox prefHeight="325.0" prefWidth="640.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="cz.vse.java4it353.client.LobbyController">
+<VBox prefHeight="325.0" prefWidth="640.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="cz.vse.java4it353.client.controllers.LobbyController">
   <children>
     <AnchorPane maxHeight="-1.0" maxWidth="-1.0" prefHeight="336.0" prefWidth="640.0" VBox.vgrow="ALWAYS">
       <children>

@@ -24,8 +24,6 @@ public class CreateLobbyCommand extends Observable implements ICommand {
         JsonNode jsonNode = objectMapper.readTree(data);
         Lobby lobby = objectMapper.treeToValue(jsonNode, Lobby.class);
 
-        log.debug("Lobby name: " + lobby.getName());
-
         setChanged();
         notifyObservers(lobby);
         return null;
