@@ -27,6 +27,7 @@ public class Lobby {
         this.boardState = boardState != null ? boardState : new Board();
         this.started = started;
     }
+    public Lobby() {}
     public String getName() {
         return name;
     }

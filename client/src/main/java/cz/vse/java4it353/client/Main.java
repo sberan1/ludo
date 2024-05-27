@@ -19,8 +19,6 @@ import java.util.UUID;
 
 public class Main extends Application {
     private static final Logger log = LoggerFactory.getLogger(Main.class);
-    public static LobbyController lobbyController;
-    private static Stage primaryStage;
     public static String PLAYER_NAME = UUID.randomUUID().toString();
 
     public static void main(String[] args) {

@@ -61,7 +61,6 @@ public class LobbyController {
     private PrintWriter pw;
     private BufferedReader in;
     private String offLobbyName = "";
-    private static final ExecutorService executorService = Executors.newCachedThreadPool();
 
     public LobbyController() {
         instance = this;
@@ -76,7 +75,6 @@ public class LobbyController {
             client = Client.getInstance();
             pw = client.pw;
             in = client.in;
-            startServerListener();
             lobbiesListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
                 if (newValue != null) {
                     handleLobbySelection(newValue);
@@ -87,26 +85,6 @@ public class LobbyController {
         } catch (IOException e) {
             logger.error("Špatná inicializace LobbyController: " + e.getMessage());
         }
-    }
-    private void startServerListener() {
-        Task<Void> task = new Task<Void>() {
-            @Override
-            protected Void call() throws Exception {
-                String message;
-                while ((message = in.readLine()) != null) {
-                    String finalMessage = message;
-                    Platform.runLater(() -> handleServerResponse(finalMessage));
-                }
-                return null;
-            }
-        };
-
-        task.setOnFailed(event -> {
-            Throwable e = task.getException();
-            logger.error("Failed to listen to server", e);
-        });
-
-        executorService.submit(task);
     }
 
     private void handleLobbySelection(String selectedLobbyName) {
@@ -141,133 +119,28 @@ public class LobbyController {
 
     @FXML
     private void handleChooseColor() {
-        String color = "RED";
-        if(rbZluta.isSelected()) color = "YELLOW";
-        else if(rbModra.isSelected()) color = "BLUE";
-        else if(rbZelena.isSelected()) color = "GREEN";
 
-        String finalColor = color;
-        Task<String> task = new Task<String>() {
-            @Override
-            protected String call() throws Exception {
-                String command = "CC " + finalColor;
-                return "";//client.send(command);
-            }
-        };
-
-        task.setOnSucceeded(event -> {
-            logger.debug("Úspěšný task handleChooseColor");
-            labelColor.setText(labelColor.getText() + finalColor);
-        });
-
-        task.setOnFailed(event -> {
-            Throwable e = task.getException();
-            logger.error("Failed to send color choice", e);
-        });
-
-        executorService.submit(task);
     }
 
     @FXML
     private void handleStartGame() {
-        Task<Void> task = new Task<Void>() {
-            @Override
-            protected Void call() throws Exception {
-                client.send("S " + offLobbyName);
-                return null;
-            }
-        };
-
-        task.setOnSucceeded(event -> {
-            logger.info("Start game command sent");
-            Platform.runLater(() -> {
-                // Close the current window and show the game window
-                Stage stage = (Stage) playersListView.getScene().getWindow();
-                stage.close();
-
-                // Show aplikace.fxml
-                try {
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/aplikace.fxml"));
-                    Stage gameStage = new Stage();
-                    gameStage.setScene(new Scene(loader.load()));
-                    gameStage.setTitle("Game");
-                    gameStage.show();
-                } catch (IOException e) {
-                    logger.error("Error loading aplikace.fxml", e);
-                }
-            });
-        });
-
-        task.setOnFailed(event -> {
-            Throwable e = task.getException();
-            logger.error("Failed to send start game command", e);
-        });
-
-        executorService.submit(task);
     }
 
     @FXML
     private void createLobby() {
-        try {
-            String lobbyName = lobbyNameInput.getText();
-            Task<String> task = new Task<String>() {
-                @Override
-                protected String call() throws Exception {
-                    return "";//client.send("C " + lobbyName);
-                }
-            };
 
-            task.setOnSucceeded(event -> {
-                String response = task.getValue();
-                handleServerResponse(response);
-            });
-
-            task.setOnFailed(event -> {
-                Throwable e = task.getException();
-                logger.error("Failed to send create lobby command", e);
-            });
-
-            executorService.submit(task);
-        } catch (Exception e) {
-            logger.error("Failed to send create lobby command.", e);
-        }
     }
 
     @FXML
     private void joinLobby() {
-        String selectedLobby = lobbiesListView.getSelectionModel().getSelectedItem();
-        offLobbyName = selectedLobby;
-        logger.debug("Selected lobby: " + selectedLobby);
-        if (selectedLobby != null && !selectedLobby.isEmpty()) {
-            Task<String> task = new Task<String>() {
-                @Override
-                protected String call() throws Exception {
-                    String command = "J " + selectedLobby;
-                    return "";//client.send(command);
-                }
-            };
-
-            task.setOnSucceeded(event -> {
-                String response = task.getValue();
-                handleServerResponse(response);
-            });
-
-            task.setOnFailed(event -> {
-                Throwable e = task.getException();
-                logger.error("Failed to join lobby", e);
-            });
-
-            executorService.submit(task);
-        }
     }
 
     public void stop() {
-        executorService.shutdown();
+
     }
 
     public void refresh(ActionEvent actionEvent) {
-        //logger.debug(client.getFirstResponse());
-        //handleServerResponse(client.getFirstResponse());
+
     }
     private void handleServerResponse(String data) {
         boolean dataIsNotNull = data != null;

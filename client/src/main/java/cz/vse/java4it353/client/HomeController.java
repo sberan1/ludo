@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cz.vse.java4it353.client.commands.CommandFactory;
 import cz.vse.java4it353.client.model.Lobby;
 import cz.vse.java4it353.client.model.Player;
 import javafx.application.Platform;
@@ -26,18 +27,18 @@ import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 
-public class HomeController implements MessageObserver {
+public class HomeController implements MessageObserver, Observer {
     private static final Logger log = LoggerFactory.getLogger(HomeController.class);
 
     private int moveToken = 0;
-    private String name = "";
     private ImageView selectedFigurka = null;
     private Map<ImageView, ImageView> poziceFigurky = new HashMap<>();
     private Map<String, ImageView> nasazeniPozice = new HashMap<>();
     private Map<String, List<Pair<Double, Double>>> startPositions = new HashMap<>();
     private Client client;
-    private List<Lobby> allLobies = new ArrayList<>();
     private Lobby aktualniLobby;
+    private Player aktualniPlayer = new Player();;
+    private List<Lobby> allLobies = new ArrayList<>();
     @FXML
     private Button hodKostkouButton;
     @FXML
@@ -316,89 +317,98 @@ public class HomeController implements MessageObserver {
             selectedFigurka.setLayoutY(startPosition.getLayoutY());
         }
     }
-
-    private CountDownLatch latch;
     @FXML
     private Button btnStart;
     private String response;
     @FXML
     private void firstStart() {
         btnStart.setVisible(false);
-
-        Task<Void> task = new Task<Void>() {
-            @Override
-            protected Void call() throws Exception {
-                try {
-                    client.send("L " + Main.PLAYER_NAME);
-                    log.debug("Odeslán dotaz na server s přihlášením hráče: " + Main.PLAYER_NAME);
-
-                    latch = new CountDownLatch(1);
-                    latch.await();
-
-                    if (response.equals("{}")) {
-                        log.info("Vytváření náhodného názvu lobby");
-                        String randomLobbyName = UUID.randomUUID().toString();
-                        log.debug("Náhodný název lobby: " + randomLobbyName);
-                        client.send("C " + randomLobbyName);
-
-                        latch = new CountDownLatch(1);
-                        latch.await();
-
-                        Platform.runLater(() -> chatTextArea.appendText("\nVytváření lobby s názvem " + randomLobbyName));
-                    } else {
-                        handleServerResponse(response);
-                    }
-
-                    log.info("Odpověď od serveru byla zpracována, nyní se pokusím připojit do lobby, která mě vezme");
-                    for (Lobby lobby : allLobies) {
-                        log.debug("Procházím lobby " + lobby.getName());
-                        if (lobby.getNumOfPlayers() < 4 && !lobby.isPlayerInLobby(Main.PLAYER_NAME)) {
-                            log.info("Lobby nalezena, pokus o připojení do ní");
-                            client.send("J " + lobby.getName());
-
-                            latch = new CountDownLatch(1);
-                            latch.await();
-
-                            final String lobbyName = lobby.getName();
-                            Platform.runLater(() -> chatTextArea.appendText("\nPřipojení do lobby " + lobbyName));
-                            aktualniLobby = lobby;
-                        }
-                    }
-
-                    Platform.runLater(() -> {
-                        chatTextArea.appendText("\nZávěr připojování, vypisuji informace o lobby.");
-                        chatTextArea.appendText("\nNázev lobby: " + (aktualniLobby != null ? aktualniLobby.getName() : "null"));
-                        chatTextArea.appendText("\nJména všech hráčů v lobby:");
-                        if (aktualniLobby != null) {
-                            for (Player player : aktualniLobby.getPlayers()) {
-                                if (player != null) {
-                                    chatTextArea.appendText("\n" + player.getName());
-                                }
-                            }
-                        }
-                    });
-
-                    log.info("Konec metody firstStart");
-                } catch (InterruptedException e) {
-                    log.error("Stala se chyba.", e);
-                }
-                return null;
-            }
-        };
-
-        new Thread(task).start();
+        client.send("L " + Main.PLAYER_NAME);
     }
 
     @Override
     public void onMessageReceived(String message) {
-        Platform.runLater(() -> {
-            log.debug("Přijatá zpráva v HomeControlleru: " + message);
-            response = message;  // Nastavení odpovědi pro latch
-            latch.countDown();   // Uvolnění latch
-        });
+        log.debug("Přijatá zpráva v HomeControlleru: " + message);
+        synchronized (this) {
+            response = message;
+        }
+        log.info("Posílám data ke zpracování");
+        try {
+            handleResponseFromServer(response);
+        } catch (JsonProcessingException e) {
+            log.error("There was a problem with json processing.", e);
+        }
     }
+    private void handleResponseFromServer(String data) throws JsonProcessingException {
+        log.debug("string před rozdělením: " +data);
+        String[] handledData = data.split(" ", 2);
+        // DEFINICE STATICKÉ TŘÍDY COMMANDFACTORY
+        // ICommand command = CommandFactory.getCommand(handledData[0]);
+        // command.execute(handledData[1]);
+        // Pokud je command například LOGIN
+        String command = handledData[0];
+        String json = handledData[1];
+        if(json.equalsIgnoreCase("{}"))
+            return;
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        aktualniPlayer.setName(Main.PLAYER_NAME);
+        switch (command) {
+            case "L": // Login command
+                log.info("Handling LOGIN COMMAND");
+                // Zjistíme, zda je JSON mapou nebo jednotlivým objektem
+                JsonNode jsonNode = objectMapper.readTree(json);
+                Lobby lobby = null;
+
+                if (jsonNode.isObject() && jsonNode.size() == 1) {
+                    log.info("JSON je mapa");
+                    Map<String, Lobby> lobbyMap = objectMapper.convertValue(jsonNode, new TypeReference<Map<String, Lobby>>() {});
+                    log.info("Vytvoření mapy");
+                    lobby = lobbyMap.values().iterator().next();
+                } else if (jsonNode.isObject()) {
+                    log.info("JSON je jednotlivý objekt");
+                    lobby = objectMapper.convertValue(jsonNode, Lobby.class);
+                }
+
+                if (lobby != null) {
+                    log.info("Lobby není null");
+                    final Lobby finalLobby = lobby;
+                    int index = allLobies.indexOf(finalLobby);
+                    log.debug("Index lobby v listu: " + index);
+                    if(index != -1) {
+                        log.info("Odstraňuji původní lobby");
+                        allLobies.remove(index);
+                    }
+                    log.info("Přidávám novou lobby");
+                    allLobies.add(finalLobby);
+                }
+                break;
+            case "J": // Join command
+                break;
+            case "CC": // Change colour command
+                break;
+            case "C": // Create lobby command
+                break;
+            case "S": // Start game command
+                break;
+            case "E": // Error command
+                break;
+        }
+        for(Lobby lobby: allLobies) {
+            log.debug("Vypisuji informace o všech lobbies");
+            log.debug("Název lobby: " + lobby.getName());
+            log.debug("Názvy hráčů:");
+            for(Player player: lobby.getPlayers()) {
+                if(player != null) {
+                    log.debug(player.getName());
+                }
+            }
+        }
+    }
+    private CommandFactory cf = new CommandFactory(this);
 
     private void handleServerResponse(String data) {
+        log.info("Získal jsem v metodě handleServerResponse data ke zpracování");
         boolean dataIsNotNull = data != null;
         boolean dataStartsWithLOrJ = (data.startsWith("L ") || data.startsWith("J "));
         if (dataIsNotNull && dataStartsWithLOrJ) {
@@ -438,7 +448,6 @@ public class HomeController implements MessageObserver {
                     allLobies.add(finalLobby);
                     aktualniLobby = finalLobby;  // Nastavení aktuální lobby
                     log.debug("AktualniLobby nastavena na: " + aktualniLobby.getName());
-                    latch.countDown();
                 }
 
             } catch (JsonMappingException ex) {
@@ -452,6 +461,12 @@ public class HomeController implements MessageObserver {
                 log.error("Data: " + data);
             }
         }
+    }
+
+    @Override
+    public void update(Observable o, Object arg) {
+        Lobby lobicko = (Lobby) arg;
+        allLobies.add(lobicko);
     }
 
     /*

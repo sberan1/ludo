@@ -12,8 +12,9 @@ import java.util.List;
 
 public class Listener implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(Listener.class);
-    private List<MessageObserver> observers = new ArrayList<>();
-    private InputStream inputStream;
+    private final List<MessageObserver> observers = new ArrayList<>();
+    private final InputStream inputStream;
+    private volatile boolean running = true;
 
     public Listener(InputStream inputStream) {
         this.inputStream = inputStream;
@@ -26,21 +27,30 @@ public class Listener implements Runnable {
         observers.remove(observer);
     }
     private void notifyObservers(String message) {
-        for (MessageObserver observer : observers) {
-            observer.onMessageReceived(message);
+        synchronized (observers) {
+            for (MessageObserver observer : observers) {
+                observer.onMessageReceived(message);
+            }
         }
+    }
+    public void stop() {
+        running = false;
     }
 
     @Override
     public void run() {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
             String line;
-            while ((line = br.readLine()) != null) {
-                log.debug("Přijatá zpráva: " + line);
+            log.info("Zde začíná naslouchání na listeneru");
+            while (running && (line = br.readLine()) != null) {
+                log.debug("Přijatá zpráva: "+ line);
                 notifyObservers(line);
             }
         } catch (IOException e) {
-            log.error("Exception occurred while listening for incoming communication.", e);
+            if (running)
+                log.error("Exception occurred while listening for incoming communication.", e);
+             else
+                log.info("Listener was stopped.");
         }
     }
 }
