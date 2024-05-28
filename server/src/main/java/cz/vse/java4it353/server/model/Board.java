@@ -37,7 +37,8 @@ public class Board {
     }
     public int rollDice() {
         hasPlayerRolled = true;
-        return (int) (Math.random() * 6) + 1;
+        setDiceValue((int) (Math.random() * 6) + 1);
+        return getDiceValue();
     }
 
     public int getDiceValue() {

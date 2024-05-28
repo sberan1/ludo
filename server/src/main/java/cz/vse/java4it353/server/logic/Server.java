@@ -84,7 +84,7 @@ public class Server {
                     ICommand command = commandFactory.getCommand(input[0]);
                     if (command != null) {
                         try {
-                            String response = null;
+                            String response;
                             if (input.length == 1) {
                                 response = command.execute(null);
                                 log.info("Response: " + response);

@@ -31,7 +31,7 @@ public class RollDiceCommand implements ICommand{
             Board board = lobby.getBoardState();
             Player playerOnTurn = board.getPlayerOnTurn();
             for (Player player : lobby.getPlayers()) {
-                if (player != null && player.getClientSocket() == clientSocket && player.equals(playerOnTurn)) {
+                if (player != null && player.getClientSocket().equals(clientSocket) && player.equals(playerOnTurn)) {
                     int newValue = board.rollDice();
                     logger.info("Player " + player.getName() + " rolled dice with value " + newValue);
                     Map<Integer, Token> tokens = player.getMovableTokens(board.getDiceValue());
@@ -43,10 +43,8 @@ public class RollDiceCommand implements ICommand{
                     lobby.sendMessageToAllPlayers("B " + mapper.writeValueAsString(board));
                     return "T " + mapper.writeValueAsString(tokens);
                 }
-                else {
-                    throw new ForbiddenMoveException("Player not found or not on turn");
-                }
             }
+            throw new ForbiddenMoveException("Player is not in lobby or is not his turn");
         }
         throw new ForbiddenMoveException("Lobby is not started, can't make a move");
     }
