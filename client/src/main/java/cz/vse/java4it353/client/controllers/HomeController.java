@@ -197,6 +197,7 @@ public class HomeController implements MessageObserver, Observer {
             log.error("Chyba při inicializaci klienta", e);
         }
         cf = new CommandFactory(this);
+        aktualniLobby = Main.getLobby();
         figurka1C.setOnMouseClicked(this::handleFigurkaClick);
         figurka2C.setOnMouseClicked(this::handleFigurkaClick);
         figurka3C.setOnMouseClicked(this::handleFigurkaClick);
@@ -248,11 +249,11 @@ public class HomeController implements MessageObserver, Observer {
         startPositions.put("L", zluty);
         startPositions.put("M", modry);
         startPositions.put("Z", zeleny);
+        firstStart();
     }
 
 
     private void handleFigurkaClick(MouseEvent event) {
-
         selectedFigurka = (ImageView) event.getSource();
         String command = "M " + moveToken;
         Client client = null;
@@ -314,13 +315,21 @@ public class HomeController implements MessageObserver, Observer {
             selectedFigurka.setLayoutY(startPosition.getLayoutY());
         }
     }
-    @FXML
-    private Button btnStart;
     private String response;
     @FXML
     private void firstStart() {
-        btnStart.setVisible(false);
-        client.send("L " + Main.getPlayerName());
+        int i = 1;
+        StringBuilder sb = new StringBuilder();
+        sb.append("Ahoj! Zde jsou informace o lobby, které se musí zobrazit všem hráčům!");
+        sb.append("\nNázev lobby: " + aktualniLobby.getName());
+        for (Player player : aktualniLobby.getPlayers()) {
+            if(player != null) {
+                sb.append("\n");
+                sb.append("Název " + i + ". hráče: " + player.getName());
+                i++;
+            }
+        }
+        chatTextArea.setText(sb.toString());
     }
 
     @Override
@@ -394,19 +403,4 @@ public class HomeController implements MessageObserver, Observer {
             }
         }
     }
-
-    public void createLobby(ActionEvent actionEvent) {
-        client.send("C " + UUID.randomUUID().toString());
-    }
-
-    /*
-    commandMap.put("E", new DisconnectCommand(clientSocket));
-        commandMap.put("L", new LoginCommand(clientSocket));
-        commandMap.put("C", new CreateLobbyCommand(clientSocket, clientSockets));
-        commandMap.put("J", new JoinLobbyCommand(clientSocket));
-        commandMap.put("S", new StartGameCommand(clientSocket));
-        commandMap.put("CC", new ChooseColorCommand(clientSocket));
-        commandMap.put("R", new RollDiceCommand(clientSocket));
-        commandMap.put("M", new MoveTokenCommand(clientSocket));
-    */
 }

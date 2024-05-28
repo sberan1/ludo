@@ -79,46 +79,42 @@ public class LobbyController implements MessageObserver, Observer {
     private void handleLobbySelection(String selectedLobbyName) {
         this.selectedLobby = selectedLobbyName;
         log.debug("Započata metoda handleLobbySelection");
-        synchronized (allLobies) {
-            Lobby selectedLobby = allLobies.stream()
-                    .filter(lobby -> lobby.getName().equals(selectedLobbyName))
-                    .findFirst()
-                    .orElse(null);
-            log.debug("Název zvolené lobby: " + selectedLobby.getName());
-            if (selectedLobby != null) {
-                List<Player> players = selectedLobby.getPlayers();
-                List<String> playerNames = players.stream()
-                        .filter(player -> player != null)
-                        .map(Player::getName)
-                        .collect(Collectors.toList());
-                for (String name : playerNames) {
-                    log.debug("Název osoby v lobby: " + name);
-                }
-                log.info("Zde ještě není spuštěn kód");
-                ObservableList<String> observablePlayerNames = FXCollections.observableArrayList(playerNames);
-                log.info("Zde byl spuštěn kód, nastavuji playersListView");
-                playersListView.setItems(observablePlayerNames);
-                log.info("Lidé nastavení");
+        Lobby selectedLobby = allLobies.stream()
+                .filter(lobby -> lobby.getName().equals(selectedLobbyName))
+                .findFirst()
+                .orElse(null);
+        log.debug("Název zvolené lobby: " + selectedLobby.getName());
+        if (selectedLobby != null) {
+            List<Player> players = selectedLobby.getPlayers();
+            List<String> playerNames = players.stream()
+                    .filter(player -> player != null)
+                    .map(Player::getName)
+                    .collect(Collectors.toList());
+            for (String name : playerNames) {
+                log.debug("Název osoby v lobby: " + name);
             }
+            log.info("Zde ještě není spuštěn kód");
+            ObservableList<String> observablePlayerNames = FXCollections.observableArrayList(playerNames);
+            log.info("Zde byl spuštěn kód, nastavuji playersListView");
+            playersListView.setItems(observablePlayerNames);
+            log.info("Lidé nastavení");
         }
     }
 
 
     private void updateLobbiesListView() {
-        synchronized (allLobies) {
-            List<String> lobbyNames = allLobies.stream()
-                    .map(Lobby::getName)
-                    .collect(Collectors.toList());
-            ObservableList<String> observableLobbyNames = FXCollections.observableArrayList(lobbyNames);
-            lobbiesListView.setItems(observableLobbyNames);
-            labelColor.setText("Moje barva: " + color);
-            lobbiesListView.getSelectionModel().clearSelection();
-            playersListView.getSelectionModel().clearSelection();
-            rbCervena.setSelected(false);
-            rbZluta.setSelected(false);
-            rbModra.setSelected(false);
-            rbZelena.setSelected(false);
-        }
+        List<String> lobbyNames = allLobies.stream()
+                .map(Lobby::getName)
+                .collect(Collectors.toList());
+        ObservableList<String> observableLobbyNames = FXCollections.observableArrayList(lobbyNames);
+        lobbiesListView.setItems(observableLobbyNames);
+        labelColor.setText("Moje barva: " + color);
+        lobbiesListView.getSelectionModel().clearSelection();
+        playersListView.getSelectionModel().clearSelection();
+        rbCervena.setSelected(false);
+        rbZluta.setSelected(false);
+        rbModra.setSelected(false);
+        rbZelena.setSelected(false);
     }
 
     @FXML
@@ -206,71 +202,76 @@ public class LobbyController implements MessageObserver, Observer {
 
     @Override
     public void update(Observable o, Object arg) {
-        synchronized (allLobies) {
-            int pocetLobbies = (int) allLobies.stream().count();
-            log.debug("INFORMACE O LOBBIES PŘED UPDATE! POČET LOBBIES: " + pocetLobbies);
+        int pocetLobbies = (int) allLobies.stream().count();
+        log.debug("INFORMACE O LOBBIES PŘED UPDATE! POČET LOBBIES: " + pocetLobbies);
 
-            if (arg instanceof Lobby) {
-                Lobby newLobby = (Lobby) arg;
-                aktualniLobby = newLobby; // Tohle snad bude fungovat
-                if (pocetLobbies == 0) {
-                    allLobies.add(newLobby);
-                }
-                else {
-                    for (Iterator<Lobby> iterator = allLobies.iterator(); iterator.hasNext();) {
-                        Lobby lobby = iterator.next();
-                        log.debug("Probíhá porovnání.\nProcházím lobby: " + lobby.getName() + "\nZískaná lobby: " + newLobby.getName());
-                        if (lobby.getName().equalsIgnoreCase(newLobby.getName())) {
-                            log.info("Názvy odpovídají");
-                            log.debug(lobby.getName());
-                            log.debug(newLobby.getName());
-                            int index = allLobies.indexOf(lobby);
-                            allLobies.remove(index);
-                        }
-                    }
-                    allLobies.add(newLobby);
-                }
-            } else if (arg instanceof List) {
-                List<Lobby> newLobbies = (List<Lobby>) arg;
-                allLobies = newLobbies;
-            } else if (arg instanceof Board) {
-                Platform.runLater(() -> {
-                    Board board = (Board) arg;
-                    aktualniLobby.setBoardState(board);
-
-                    // Načtení FXML souboru
-                    Parent root = null;
-                    try {
-                        root = FXMLLoader.load(getClass().getResource("/aplikace.fxml"));
-                    } catch (IOException e) {
-                        log.error("Ocitl se problém v načítání aplikace.fxml", e);
-                    }
-
-                    // Vytvoření scény
-                    Scene scene = new Scene(root, 703, 980);
-
-                    // Nastavení scény a zobrazení hlavního okna
-                    primaryStage.close();
-                    primaryStage.setTitle("Člověče, nezlob se! - " + Main.getPlayerName());
-                    primaryStage.setScene(scene);
-                    primaryStage.show();
-                    log.info("Spuštěna aplikace z aplikace.fxml se jménem " + Main.getPlayerName());
-                });
-
-                return;
+        if (arg instanceof Lobby) {
+            Lobby newLobby = (Lobby) arg;
+            aktualniLobby = newLobby; // Tohle snad bude fungovat
+            if (pocetLobbies == 0) {
+                allLobies.add(newLobby);
             }
+            else {
+                for (Iterator<Lobby> iterator = allLobies.iterator(); iterator.hasNext();) {
+                    Lobby lobby = iterator.next();
+                    log.debug("Probíhá porovnání.\nProcházím lobby: " + lobby.getName() + "\nZískaná lobby: " + newLobby.getName());
+                    if (lobby.getName().equalsIgnoreCase(newLobby.getName())) {
+                        log.info("Názvy odpovídají");
+                        log.debug(lobby.getName());
+                        log.debug(newLobby.getName());
+                        int index = allLobies.indexOf(lobby);
+                        allLobies.remove(index);
+                    }
+                }
+                allLobies.add(newLobby);
+            }
+        } else if (arg instanceof List) {
+            List<Lobby> newLobbies = (List<Lobby>) arg;
+            allLobies = newLobbies;
+        } else if (arg instanceof Board) {
+            Platform.runLater(() -> {
+                Board board = (Board) arg;
+                aktualniLobby.setBoardState(board);
+                Main.setLobby(aktualniLobby);
 
-            log.debug("Pokus o spočítání počtu lobbies");
-            pocetLobbies = (int) allLobies.stream().count();
-            log.debug("INFORMACE O LOBBIES PO UPDATE! POČET LOBBIES: " + pocetLobbies);
-            for (Lobby lobby : allLobies) {
-                if (lobby != null) {
-                    log.debug("Název lobby: " + lobby.getName());
-                    log.debug("Název hráčů v lobby:");
-                    for (Player player : lobby.getPlayers()) {
-                        if (player != null) {
-                            log.debug(player.getName());
-                        }
+                log.warn("LOBBY NÁZEV: " + Main.getLobby().getName());
+                for(Player player : Main.getLobby().getPlayers()) {
+                    if(player != null) {
+                        log.warn("Jméno hráče: " + player.getName());
+                    }
+                }
+                // Načtení FXML souboru
+                Parent root = null;
+                try {
+                    root = FXMLLoader.load(getClass().getResource("/aplikace.fxml"));
+                } catch (IOException e) {
+                    log.error("Ocitl se problém v načítání aplikace.fxml", e);
+                }
+
+                // Vytvoření scény
+                Scene scene = new Scene(root, 703, 980);
+
+                // Nastavení scény a zobrazení hlavního okna
+                primaryStage.close();
+                primaryStage.setTitle("Člověče, nezlob se! - " + Main.getPlayerName());
+                primaryStage.setScene(scene);
+                primaryStage.show();
+                log.info("Spuštěna aplikace z aplikace.fxml se jménem " + Main.getPlayerName());
+            });
+
+            return;
+        }
+
+        log.debug("Pokus o spočítání počtu lobbies");
+        pocetLobbies = (int) allLobies.stream().count();
+        log.debug("INFORMACE O LOBBIES PO UPDATE! POČET LOBBIES: " + pocetLobbies);
+        for (Lobby lobby : allLobies) {
+            if (lobby != null) {
+                log.debug("Název lobby: " + lobby.getName());
+                log.debug("Název hráčů v lobby:");
+                for (Player player : lobby.getPlayers()) {
+                    if (player != null) {
+                        log.debug(player.getName());
                     }
                 }
             }

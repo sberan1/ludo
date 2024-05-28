@@ -1,6 +1,7 @@
 package cz.vse.java4it353.client;
 
 import cz.vse.java4it353.client.controllers.LobbyController;
+import cz.vse.java4it353.client.model.Lobby;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -21,6 +22,7 @@ import java.util.UUID;
 public class Main extends Application {
     private static final Logger log = LoggerFactory.getLogger(Main.class);
     private static String PLAYER_NAME = "";
+    private static Lobby MAIN_LOBBY = new Lobby();
 
     public static void main(String[] args) {
         log.info("Starting JavaFX application");
@@ -28,6 +30,10 @@ public class Main extends Application {
     }
     public static String getPlayerName() {
         return PLAYER_NAME;
+    }
+    public static Lobby getLobby() { return MAIN_LOBBY; }
+    public static void setLobby(Lobby lobby) {
+        MAIN_LOBBY = lobby;
     }
 
     @Override
