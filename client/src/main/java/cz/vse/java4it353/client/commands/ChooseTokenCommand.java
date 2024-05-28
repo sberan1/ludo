@@ -20,7 +20,7 @@ public class ChooseTokenCommand extends Observable implements ICommand {
         log.info("Teď jsem v ChooseTokenCommand");
         log.debug(data);
         ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(data);
+        //JsonNode jsonNode = objectMapper.readTree(data);
         //Lobby lobby = objectMapper.treeToValue(jsonNode, Lobby.class);
 
         //setChanged();
