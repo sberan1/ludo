@@ -40,7 +40,7 @@ public class LoginCommand implements ICommand {
         game.addPlayer(player);
         logger.info("Player " + player.getName() + " has logged in");
         String lobbies = game.JSONLobbies();
-        game.notifyPlayers(lobbies, clientSockets);
+        //game.notifyPlayers(lobbies, clientSockets);
         return "L " + lobbies;
     }
 }

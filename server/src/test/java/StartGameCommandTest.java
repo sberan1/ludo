@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.Socket;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -14,13 +15,14 @@ public class StartGameCommandTest {
     private Game game;
     private StartGameCommand command;
     private Socket socket;
+    private List<Socket> clientSockets;
     private ObjectMapper mapper;
 
     @BeforeEach
     public void setup() {
         game = Game.getInstance();
         socket = new Socket();
-        command = new StartGameCommand(socket);
+        command = new StartGameCommand(socket, clientSockets);
         mapper = new ObjectMapper();
     }
 

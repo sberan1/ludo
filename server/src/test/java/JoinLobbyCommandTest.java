@@ -27,7 +27,7 @@ public class JoinLobbyCommandTest {
         Lobby testLobby = new Lobby("TestLobby");
         Game.getInstance().addLobby(testLobby);
 
-        JoinLobbyCommand joinLobbyCommand = new JoinLobbyCommand(mockSocket);
+        JoinLobbyCommand joinLobbyCommand = new JoinLobbyCommand(mockSocket, mockSockets);
         String output = null;
         try {
             output = joinLobbyCommand.execute(testLobby.getName());
