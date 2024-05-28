@@ -22,6 +22,10 @@ public class JoinLobbyCommand implements ICommand {
 
     @Override
     public String execute(String data) throws Exception {
+        if (data == null) {
+            logger.warning("No data provided");
+            throw new Exception("No data provided");
+        }
         Game game = Game.getInstance();
         Lobby lobby = game.getLobby(data);
 
