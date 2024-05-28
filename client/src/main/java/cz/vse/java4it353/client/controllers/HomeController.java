@@ -5,6 +5,7 @@ import cz.vse.java4it353.client.Main;
 import cz.vse.java4it353.client.MessageObserver;
 import cz.vse.java4it353.client.commands.CommandFactory;
 import cz.vse.java4it353.client.commands.ICommand;
+import cz.vse.java4it353.client.model.Board;
 import cz.vse.java4it353.client.model.Lobby;
 import cz.vse.java4it353.client.model.Player;
 import javafx.event.ActionEvent;
@@ -255,23 +256,12 @@ public class HomeController implements MessageObserver, Observer {
 
     private void handleFigurkaClick(MouseEvent event) {
         selectedFigurka = (ImageView) event.getSource();
-        String command = "M " + moveToken;
-        Client client = null;
-        try {
-            client = Client.getInstance();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        client.send(command);
-
+        int pohyb = aktualniLobby.getBoardState().getDiceValue();
+        log.info("Hozeno na kostce: " + pohyb);
         selectedFigurka = null;
-
     }
     public void hodKostkou(ActionEvent actionEvent) throws IOException {
-        String command = "R";
-        Client client = Client.getInstance();
-        client.send(command);
-        moveToken = 1; // Zpracování odpovědi serveru
+        client.send("R");
     }
     private void handlePositionClick(MouseEvent event) {
         // Posun figurky na pozici, kterou mi vrátí server - musím si jí vypočítat sám
@@ -325,10 +315,12 @@ public class HomeController implements MessageObserver, Observer {
         for (Player player : aktualniLobby.getPlayers()) {
             if(player != null) {
                 sb.append("\n");
-                sb.append("Název " + i + ". hráče: " + player.getName());
+                sb.append("Název " + i + ". hráče: " + player.getName() + ", jeho barva: " + aktualniLobby.getBoardState().getPlayerColour(player.getName()));
                 i++;
             }
         }
+        sb.append("\nTento klient je na tahu: " + (aktualniLobby.getBoardState().getPlayerOnTurn().getName().equals(Main.getPlayerName()) ? true : false));
+        sb.append("\nPlayerOnTurn: " + aktualniLobby.getBoardState().getPlayerOnTurn().getName());
         chatTextArea.setText(sb.toString());
     }
 
@@ -348,59 +340,21 @@ public class HomeController implements MessageObserver, Observer {
     private void handleResponseFromServer(String data) throws Exception {
         log.debug("string před rozdělením: " + data);
         String[] handledData = data.split(" ", 2);
-        ICommand command = cf.getCommand(handledData[0]);
-        command.execute(handledData[1]);
+        ICommand command;
+        if(handledData.length == 1) {
+            command = cf.getCommand("L");
+            command.execute(handledData[0]);
+        }
+        else {
+            command = cf.getCommand(handledData[0]);
+            command.execute(handledData[1]);
+        }
     }
 
     @Override
     public void update(Observable o, Object arg) {
-        int pocetLobbies = (int) allLobies.stream().count();
-        log.debug("INFORMACE O LOBBIES PŘED UPDATE! POČET LOBBIES: " + pocetLobbies);
-
-        for(Lobby lobby: allLobies) {
-            if(lobby != null) {
-                for(Player player: lobby.getPlayers()) {
-                    if(player != null) {
-                        log.debug(player.getName());
-                    }
-                }
-            }
-        }
-
-        if(arg instanceof Lobby) {
-            Lobby newLobby = (Lobby) arg;
-            if(pocetLobbies == 0) {
-                allLobies.add(newLobby);
-            }
-            else {
-                for(Lobby lobby: allLobies) {
-                    if(lobby.getName().equalsIgnoreCase(newLobby.getName())) {
-                        int index = allLobies.indexOf(lobby);
-                        allLobies.remove(index);
-                        allLobies.add(newLobby);
-                    }
-                }
-                allLobies.add(newLobby);
-            }
-        }
-        else if(arg instanceof List) {
-            List<Lobby> newLobbies = (List<Lobby>) arg;
-            allLobies = newLobbies;
-        }
-
-        log.debug("Pokus o spočítání počtu lobbies");
-        pocetLobbies = (int) allLobies.stream().count();
-        log.debug("INFORMACE O LOBBIES PO UPDATE! POČET LOBBIES: " + pocetLobbies);
-        for(Lobby lobby: allLobies) {
-            if(lobby != null) {
-                log.debug("Název lobby: " + lobby.getName());
-                log.debug("Název hráčů v lobby:");
-                for(Player player: lobby.getPlayers()) {
-                    if(player != null) {
-                        log.debug(player.getName());
-                    }
-                }
-            }
+        if(arg instanceof Board) {
+            aktualniLobby.setBoardState((Board) arg);
         }
     }
 }

@@ -37,10 +37,10 @@ public class RollDiceCommand implements ICommand{
                     Map<Integer, Token> tokens = player.getMovableTokens(board.getDiceValue());
                     if (tokens.isEmpty()) {
                         board.nextPlayerOnTurn();
-                        lobby.sendMessageToAllPlayers(mapper.writeValueAsString(board));
+                        lobby.sendMessageToAllPlayers("B " + mapper.writeValueAsString(board));
                         return "M No tokens can be moved, next player on turn";
                     }
-                    lobby.sendMessageToAllPlayers(mapper.writeValueAsString(board));
+                    lobby.sendMessageToAllPlayers("B " + mapper.writeValueAsString(board));
                     return "T " + mapper.writeValueAsString(tokens);
                 }
                 else {

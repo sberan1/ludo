@@ -20,6 +20,7 @@ public class CommandFactory {
         commandMap.put("L", new SyncLobbiesCommand(o));
         commandMap.put("J", new CreateLobbyCommand(o));
         commandMap.put("B", new StartGameCommand(o));
+        commandMap.put("T", new ChooseTokenCommand(o));
         //.put("E", null);
     }
 

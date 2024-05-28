@@ -158,19 +158,6 @@ public class LobbyController implements MessageObserver, Observer {
     }
 
     public void refresh(ActionEvent actionEvent) {
-        //client.send("L ");
-        /*if (aktualniLobby == null) {
-            log.warn("Aktuální lobby není inicializována.");
-            return;
-        }
-        String info = "Informace o aktuální lobby a všech hráčích:\nNázev aktuální lobby: " + aktualniLobby.getName();
-        for (Player player : aktualniLobby.getPlayers()) {
-            if(player != null) {
-                info += "\nNázev hráče: " + player.getName();
-                info += "\nBarva hráče: " + color;
-            }
-        }
-        log.warn(info);*/
         log.info("Vstupuji do all lobbies");
         for(Lobby lobby : allLobies) {
             log.info("Název lobby: " + lobby.getName());

@@ -45,6 +45,11 @@ public class Server {
                     Socket clientSocket = serverSocket.accept();
                     clientSockets.add(clientSocket);
                     log.info("Client connected: " + clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getInetAddress().getHostName() + "and added to clientSockets");
+                    for(Socket cs : clientSockets) {
+                        if(cs.equals(clientSocket)) {
+                            log.error("SuggarDenny");
+                        }
+                    }
                     clientHandlingPool.execute(() -> handleClient(clientSocket));
                 } catch (SocketException se) {
                     if (serverSocket.isClosed()) {

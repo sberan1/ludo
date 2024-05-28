@@ -33,7 +33,7 @@ public class StartGameCommand implements ICommand{
             }
             if (player.getClientSocket() == clientSocket) {
                 lobby.setStarted(true);
-                String result = mapper.writeValueAsString(lobby);
+                String result = mapper.writeValueAsString(lobby.getBoardState());
                 lobby.sendMessageToAllPlayers("B " + result);
                 return "B " + result;
             }
