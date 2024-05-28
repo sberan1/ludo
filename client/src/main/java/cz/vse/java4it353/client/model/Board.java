@@ -1,9 +1,13 @@
 package cz.vse.java4it353.client.model;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.HashMap;
 import java.util.Map;
 
 public class Board {
+    private static final Logger logger = LoggerFactory.getLogger(Board.class);
     private Map<String, Player> playerMap;
     private Player playerOnTurn;
     private int diceValue;

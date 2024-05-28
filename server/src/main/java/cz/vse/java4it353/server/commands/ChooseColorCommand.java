@@ -10,16 +10,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.List;
 
 public class ChooseColorCommand implements ICommand {
 
     Socket clientSocket;
+    private List<Socket> clientSockets;
     private final Logger logger = LoggerFactory.getLogger(ChooseColorCommand.class);
     ObjectMapper mapper = new ObjectMapper();
 
 
-    public ChooseColorCommand(Socket clientSocket) {
+    public ChooseColorCommand(Socket clientSocket, List<Socket> clientSockets) {
         this.clientSocket = clientSocket;
+        this.clientSockets = clientSockets;
     }
 
     @Override
@@ -53,8 +56,8 @@ public class ChooseColorCommand implements ICommand {
             }
 
             lobby.getBoardState().setPlayer(player, color);
+            game.notifyPlayers(game.JSONLobbies(), clientSockets);
             return "J " + mapper.writeValueAsString(lobby);
-
         }
         catch (IllegalArgumentException e) {
             logger.warn("Invalid color");
