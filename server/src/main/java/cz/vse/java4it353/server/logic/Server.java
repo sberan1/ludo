@@ -38,12 +38,13 @@ public class Server {
     public void start() {
         try {
             serverSocket = new ServerSocket(port);
-            System.out.println("Server started on port " + port);
+            log.debug("Server started on port " + port);
 
             while (isRunning && !serverSocket.isClosed()) {
                 try {
                     Socket clientSocket = serverSocket.accept();
                     clientSockets.add(clientSocket);
+                    log.info("Client connected: " + clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getInetAddress().getHostName() + "and added to clientSockets");
                     clientHandlingPool.execute(() -> handleClient(clientSocket));
                 } catch (SocketException se) {
                     if (serverSocket.isClosed()) {
@@ -68,10 +69,26 @@ public class Server {
                 while ((inputLine = in.readLine()) != null) {
                     log.debug("Received message: " + inputLine);
                     String[] input = inputLine.split(" ", 2);
+
+                    if(input.length == 0) {
+                        log.error("Empty input");
+                        out.println("E Empty input");
+                        continue;
+                    }
+
                     ICommand command = commandFactory.getCommand(input[0]);
                     if (command != null) {
                         try {
-                            out.println(command.execute(input[1]));
+                            String response = null;
+                            if (input.length == 1) {
+                                response = command.execute(null);
+                                log.info("Response: " + response);
+                                out.println(response);
+                            } else {
+                                response = command.execute(input[1]);
+                                log.info("Response: " + response);
+                                out.println(response);
+                            }
                         } catch (Exception e) {
                             log.error("Error executing command: " + e.getMessage());
                             out.println("E " + e.getMessage());
@@ -88,6 +105,7 @@ public class Server {
             try {
                 clientSocket.close();
                 clientSockets.remove(clientSocket);
+                log.info("Client disconnected: " + clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getInetAddress().getHostName() + "and removed from clientSockets");
             } catch (IOException e) {
                 log.error("Error closing client socket: " + e.getMessage());
             }
@@ -101,22 +119,27 @@ public class Server {
             for (Socket socket : clientSockets) {
                 if (!socket.isClosed()) {
                     socket.close();
+                    log.info("Client socket closed: " + socket.getInetAddress().getHostAddress() + ":" + socket.getInetAddress().getHostName());
                 }
             }
             // Close the server socket
             if (serverSocket != null && !serverSocket.isClosed()) {
                 serverSocket.close();
+                log.info("Server socket closed");
             }
         } catch (IOException e) {
-            System.out.println("Error during server shutdown: " + e.getMessage());
+            log.error("Error during server shutdown: " + e.getMessage());
         } finally {
             clientHandlingPool.shutdown(); // Shutdown all client-handling threads
+            log.info("Client handling pool shutdown");
             try {
                 if (!clientHandlingPool.awaitTermination(30, TimeUnit.SECONDS)) {
                     clientHandlingPool.shutdownNow();
+                    log.error("Client handling pool did not shut down gracefully - forcibly shutting down");
                 }
             } catch (InterruptedException ie) {
                 clientHandlingPool.shutdownNow();
+                log.error("Error shutting down client handling pool: " + ie.getMessage() + " - forcibly shutting down");
             }
         }
     }

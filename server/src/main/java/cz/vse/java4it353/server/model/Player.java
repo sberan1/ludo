@@ -98,7 +98,10 @@ public class Player {
     private void checkCollision(int otherPlayerOffset, Player otherPlayer, int newPosition, int playerOffset) {
         if (otherPlayer != this && otherPlayer != null) {
             for (Token otherToken : otherPlayer.getTokens()) {
-                if ((otherToken.getPosition() + otherPlayerOffset) % Board.BOARD_SIZE  == (newPosition + playerOffset) % Board.BOARD_SIZE) {
+                if ((otherToken.getPosition() + otherPlayerOffset) % Board.BOARD_SIZE - 4
+                        == (newPosition + playerOffset) % Board.BOARD_SIZE - 4
+                        && otherToken.getPosition() != 0
+                        && otherToken.getPosition() < Board.BOARD_SIZE - 4) {
                     otherToken.setPosition(0);
                 }
             }

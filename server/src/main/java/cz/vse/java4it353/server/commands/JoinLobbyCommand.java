@@ -38,7 +38,7 @@ public class JoinLobbyCommand implements ICommand {
         }
 
         lobby.addPlayer(player);
-        game.notifyPlayers(game.JSONLobbies(), clientSockets);
+        game.notifyPlayers("L " + game.JSONLobbies(), clientSockets);
         return "J " + mapper.writeValueAsString(lobby);
     }
 }

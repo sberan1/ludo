@@ -11,13 +11,11 @@ import java.util.List;
 
 public class StartGameCommand implements ICommand{
     private final Socket clientSocket;
-    private List<Socket> clientSockets;
     private static final Logger logger = LoggerFactory.getLogger(StartGameCommand.class);
     ObjectMapper mapper = new ObjectMapper();
 
     public StartGameCommand(Socket clientSocket, List<Socket> clientSockets) {
         this.clientSocket = clientSocket;
-        this.clientSockets = clientSockets;
     }
 
     @Override
@@ -35,8 +33,9 @@ public class StartGameCommand implements ICommand{
             }
             if (player.getClientSocket() == clientSocket) {
                 lobby.setStarted(true);
-                game.notifyPlayers("B " + mapper.writeValueAsString(lobby.getBoardState()), clientSockets);
-                return "";
+                String result = mapper.writeValueAsString(lobby);
+                lobby.sendMessageToAllPlayers("B " + result);
+                return "B " + result;
             }
         }
         logger.warn("Player not found in lobby");
