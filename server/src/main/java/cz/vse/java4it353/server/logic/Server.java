@@ -66,6 +66,7 @@ public class Server {
 
             String inputLine;
                 while ((inputLine = in.readLine()) != null) {
+                    log.debug("Received message: " + inputLine);
                     String[] input = inputLine.split(" ", 2);
                     ICommand command = commandFactory.getCommand(input[0]);
                     if (command != null) {

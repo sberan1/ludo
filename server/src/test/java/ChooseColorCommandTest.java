@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.Socket;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -15,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ChooseColorCommandTest {
     private ChooseColorCommand command;
     private Socket socket;
+    private List<Socket> clientSockets;
     private Game game;
     private Lobby lobby;
     private Player player;
@@ -25,7 +27,7 @@ public class ChooseColorCommandTest {
         game = Game.getInstance();
         player = new Player();
         lobby = new Lobby("Test Lobby");
-        command = new ChooseColorCommand(socket);
+        command = new ChooseColorCommand(socket, clientSockets);
     }
 
     @Test

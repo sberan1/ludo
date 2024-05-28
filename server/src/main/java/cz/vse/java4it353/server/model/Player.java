@@ -1,7 +1,10 @@
 package cz.vse.java4it353.server.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import cz.vse.java4it353.server.enums.ColorEnum;
+import cz.vse.java4it353.server.logic.Game;
 
+import java.lang.reflect.MalformedParameterizedTypeException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,14 +50,17 @@ public class Player {
     public void moveToken(int tokenIndex, int steps, Lobby lobby) {
         int newPosition = tokens[tokenIndex].move(steps);
 
-        for (Player otherPlayer : lobby.getPlayers()) {
-            if (otherPlayer != this && otherPlayer != null) {
-                for (Token otherToken : otherPlayer.getTokens()) {
-                    if (otherToken.getPosition() == newPosition) {
-                        otherToken.setPosition(0);
-                    }
-                }
+        Map <ColorEnum, Player> playerMap = lobby.getBoardState().getPlayerMap();
+        ColorEnum colorPlayer = null;
+        for (ColorEnum colorEnum : playerMap.keySet()){
+            if (playerMap.get(colorEnum).equals(this)){
+                colorPlayer = colorEnum;
             }
+        }
+        int offset = Game.offset.get(colorPlayer);
+
+        for (ColorEnum color : playerMap.keySet()) {
+            checkCollision(Game.offset.get(color), lobby.getBoardState().getPlayerMap().get(color), newPosition, offset);
         }
     }
 
@@ -86,6 +92,16 @@ public class Player {
             }
 
             return true;
+        }
+    }
+
+    private void checkCollision(int otherPlayerOffset, Player otherPlayer, int newPosition, int playerOffset) {
+        if (otherPlayer != this && otherPlayer != null) {
+            for (Token otherToken : otherPlayer.getTokens()) {
+                if ((otherToken.getPosition() + otherPlayerOffset) % Board.BOARD_SIZE  == (newPosition + playerOffset) % Board.BOARD_SIZE) {
+                    otherToken.setPosition(0);
+                }
+            }
         }
     }
 }

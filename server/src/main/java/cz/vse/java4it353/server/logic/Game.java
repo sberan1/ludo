@@ -3,11 +3,13 @@ package cz.vse.java4it353.server.logic;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cz.vse.java4it353.server.enums.ColorEnum;
 import cz.vse.java4it353.server.model.Lobby;
 import cz.vse.java4it353.server.model.Player;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.List;
@@ -19,6 +21,7 @@ public class Game {
     private static final Logger logger = LoggerFactory.getLogger(Game.class);
     Map<String, Lobby> lobbies;
     Map<String, Player> players;
+    public static Map<ColorEnum, Integer> offset = new HashMap<>();
     ObjectMapper mapper = new ObjectMapper();
 
 
@@ -30,6 +33,10 @@ public class Game {
     public static Game getInstance() {
         if (instance == null) {
             instance = new Game();
+            offset.put(ColorEnum.RED, 0);
+            offset.put(ColorEnum.YELLOW, 10);
+            offset.put(ColorEnum.GREEN, 20);
+            offset.put(ColorEnum.BLUE, 30);
         }
         return instance;
     }
@@ -89,5 +96,16 @@ public class Game {
             logger.error(e.getMessage());
             return "error while serializing lobbies to JSON";
         }
+    }
+
+    public void notifyPlayers(String data, List<Socket> clientSockets) {
+        clientSockets.forEach(socket -> {
+            try {
+                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+                out.println(data);
+            } catch (Exception e) {
+                logger.warn("error while sending lobby info to " + socket + " " + e.getMessage());
+            }
+        });
     }
 }

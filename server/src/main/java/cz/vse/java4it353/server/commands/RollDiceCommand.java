@@ -36,7 +36,7 @@ public class RollDiceCommand implements ICommand{
                         lobby.sendMessageToAllPlayers(mapper.writeValueAsString(board));
                         throw new ForbiddenMoveException("No tokens can be moved, next player on turn");
                     }
-                    return mapper.writeValueAsString(tokens);
+                    return "T " + mapper.writeValueAsString(tokens);
                 }
                 else {
                     throw new ForbiddenMoveException("Player not found or not on turn");

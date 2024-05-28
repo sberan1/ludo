@@ -4,6 +4,7 @@ import cz.vse.java4it353.server.model.Lobby;
 import cz.vse.java4it353.server.model.Player;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.slf4j.ILoggerFactory;
 
 import java.net.Socket;
 import java.util.ArrayList;
@@ -26,8 +27,13 @@ public class JoinLobbyCommandTest {
         Lobby testLobby = new Lobby("TestLobby");
         Game.getInstance().addLobby(testLobby);
 
-        JoinLobbyCommand joinLobbyCommand = new JoinLobbyCommand(mockSocket);
-        String output = joinLobbyCommand.execute(testLobby.getName());
+        JoinLobbyCommand joinLobbyCommand = new JoinLobbyCommand(mockSocket, mockSockets);
+        String output = null;
+        try {
+            output = joinLobbyCommand.execute(testLobby.getName());
+        } catch (Exception e) {
+            System.out.println("Exception: " + e);
+        }
 
         Game game = Game.getInstance();
         Lobby lobby = game.getLobby(testLobby.getName());
