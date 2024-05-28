@@ -35,28 +35,25 @@ public class ChooseColorCommand implements ICommand {
         try {
             ColorEnum color = ColorEnum.valueOf(data.toUpperCase());
             Game game = Game.getInstance();
-            Lobby lobby = game.listLobbies().stream()
-                    .filter(lobbyLocal -> Arrays.stream(lobbyLocal.getPlayers())
-                    .anyMatch(player -> player.getClientSocket() == clientSocket))
-                    .findFirst()
-                    .orElse(null);
+            Lobby lobby = game.getLobbyWithPlayer(clientSocket);
             if (lobby == null) {
                 logger.warn("Player not found in any lobby");
                 throw new Exception("Player not found in any lobby");
             }
+            logger.info("Lobby " + lobby.getName() + " found.");
 
-            Player player = Arrays.stream(lobby.getPlayers())
-                    .filter(pl -> pl.getClientSocket() == clientSocket)
-                    .findFirst()
-                    .orElse(null);
 
+            Player player = game.getPlayerBySocket(clientSocket);
             if (player == null) {
                 logger.warn("Player not found in lobby");
                 throw new Exception("Player not found in lobby");
             }
+            logger.info("Player " + player.getName() + " found on " + clientSocket.getInetAddress().getHostAddress() + " socket");
+
 
             lobby.getBoardState().setPlayer(player, color);
-            game.notifyPlayers(game.JSONLobbies(), clientSockets);
+            game.notifyPlayers("L " + game.JSONLobbies(), clientSockets);
+            lobby.sendMessageToAllPlayers("J " + mapper.writeValueAsString(lobby));
             return "J " + mapper.writeValueAsString(lobby);
         }
         catch (IllegalArgumentException e) {
