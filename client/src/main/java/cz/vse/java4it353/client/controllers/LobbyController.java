@@ -181,6 +181,12 @@ public class LobbyController implements MessageObserver, Observer {
                 }
             }
         }
+        log.info("Vstupuji do aktuální lobby, název: " + aktualniLobby.getName());
+        for(Player player : aktualniLobby.getPlayers()) {
+            if(player != null) {
+                log.info("sráč: "+player.getName());
+            }
+        }
     }
     private void handleResponseFromServer(String data) throws Exception {
         log.debug("string před rozdělením: " + data);
