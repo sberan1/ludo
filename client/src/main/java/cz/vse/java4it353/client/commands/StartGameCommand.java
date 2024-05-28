@@ -20,6 +20,7 @@ public class StartGameCommand extends Observable implements ICommand {
         JsonNode jsonNode = objectMapper.readTree(data);
         Board board = objectMapper.treeToValue(jsonNode, Board.class);
 
+        log.info("Vracím board a tím spouštím hru");
         setChanged();
         notifyObservers(board);
         return null;

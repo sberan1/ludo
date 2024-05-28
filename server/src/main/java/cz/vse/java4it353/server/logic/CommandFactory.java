@@ -19,7 +19,7 @@ public class CommandFactory {
         commandMap.put("L", new LoginCommand(clientSocket, clientSockets));
         commandMap.put("C", new CreateLobbyCommand(clientSocket, clientSockets));
         commandMap.put("J", new JoinLobbyCommand(clientSocket, clientSockets));
-        commandMap.put("S", new StartGameCommand(clientSocket));
+        commandMap.put("S", new StartGameCommand(clientSocket, clientSockets));
         commandMap.put("CC", new ChooseColorCommand(clientSocket, clientSockets));
         commandMap.put("R", new RollDiceCommand(clientSocket));
         commandMap.put("M", new MoveTokenCommand(clientSocket));
