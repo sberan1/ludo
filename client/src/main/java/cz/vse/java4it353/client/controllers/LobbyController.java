@@ -159,7 +159,7 @@ public class LobbyController implements MessageObserver, Observer {
 
     public void refresh(ActionEvent actionEvent) {
         //client.send("L ");
-        if (aktualniLobby == null) {
+        /*if (aktualniLobby == null) {
             log.warn("Aktuální lobby není inicializována.");
             return;
         }
@@ -170,7 +170,17 @@ public class LobbyController implements MessageObserver, Observer {
                 info += "\nBarva hráče: " + color;
             }
         }
-        log.warn(info);
+        log.warn(info);*/
+        log.info("Vstupuji do all lobbies");
+        for(Lobby lobby : allLobies) {
+            log.info("Název lobby: " + lobby.getName());
+            log.info("Seznam hráčů:");
+            for(Player player : lobby.getPlayers()) {
+                if(player != null) {
+                    log.info(player.getName());
+                }
+            }
+        }
     }
     private void handleResponseFromServer(String data) throws Exception {
         log.debug("string před rozdělením: " + data);
@@ -199,35 +209,37 @@ public class LobbyController implements MessageObserver, Observer {
             log.error("There was a problem with json processing.", e);
         }
     }
+    private void handleSingleLobby(Lobby arg) {
+        Lobby newLobby = arg;
+        aktualniLobby = newLobby;
+        log.debug("Získal jsem single lobby, název aktuální lobby je " + aktualniLobby.getName());
 
+        boolean lobbyExists = false;
+        for (Lobby lobby : allLobies) {
+            if (lobby.getName().equalsIgnoreCase(newLobby.getName())) {
+                allLobies.remove(lobby);
+                lobbyExists = true;
+                break;
+            }
+        }
+        allLobies.add(newLobby);
+
+        if (!lobbyExists) {
+            log.debug("Toto je první lobby, přidávám jí tedy do listu");
+        } else {
+            log.debug("Toto není první lobby, lobby byla aktualizována");
+        }
+    }
+    private void handleMultipleLobbies(List<Lobby> arg) {
+        allLobies.clear();
+        allLobies.addAll(arg);
+    }
     @Override
     public void update(Observable o, Object arg) {
-        int pocetLobbies = (int) allLobies.stream().count();
-        log.debug("INFORMACE O LOBBIES PŘED UPDATE! POČET LOBBIES: " + pocetLobbies);
-
         if (arg instanceof Lobby) {
-            Lobby newLobby = (Lobby) arg;
-            aktualniLobby = newLobby; // Tohle snad bude fungovat
-            if (pocetLobbies == 0) {
-                allLobies.add(newLobby);
-            }
-            else {
-                for (Iterator<Lobby> iterator = allLobies.iterator(); iterator.hasNext();) {
-                    Lobby lobby = iterator.next();
-                    log.debug("Probíhá porovnání.\nProcházím lobby: " + lobby.getName() + "\nZískaná lobby: " + newLobby.getName());
-                    if (lobby.getName().equalsIgnoreCase(newLobby.getName())) {
-                        log.info("Názvy odpovídají");
-                        log.debug(lobby.getName());
-                        log.debug(newLobby.getName());
-                        int index = allLobies.indexOf(lobby);
-                        allLobies.remove(index);
-                    }
-                }
-                allLobies.add(newLobby);
-            }
+            handleSingleLobby((Lobby) arg);
         } else if (arg instanceof List) {
-            List<Lobby> newLobbies = (List<Lobby>) arg;
-            allLobies = newLobbies;
+            handleMultipleLobbies((List<Lobby>) arg);
         } else if (arg instanceof Board) {
             Platform.runLater(() -> {
                 Board board = (Board) arg;
@@ -262,20 +274,21 @@ public class LobbyController implements MessageObserver, Observer {
             return;
         }
 
-        log.debug("Pokus o spočítání počtu lobbies");
-        pocetLobbies = (int) allLobies.stream().count();
-        log.debug("INFORMACE O LOBBIES PO UPDATE! POČET LOBBIES: " + pocetLobbies);
-        for (Lobby lobby : allLobies) {
-            if (lobby != null) {
-                log.debug("Název lobby: " + lobby.getName());
-                log.debug("Název hráčů v lobby:");
-                for (Player player : lobby.getPlayers()) {
-                    if (player != null) {
-                        log.debug(player.getName());
+        synchronized (allLobies) {
+            log.warn("Informace o všech lobbies po aktualizaci");
+            for (Lobby lobby : allLobies) {
+                if (lobby != null) {
+                    log.debug("Název lobby: " + lobby.getName());
+                    log.debug("Název hráčů v lobby:");
+                    for (Player player : lobby.getPlayers()) {
+                        if (player != null) {
+                            log.debug(player.getName());
+                        }
                     }
                 }
             }
         }
+
         Platform.runLater(this::updateLobbiesListView); // Změna UI prvků musí proběhnout v hlavním vlákně
     }
 }

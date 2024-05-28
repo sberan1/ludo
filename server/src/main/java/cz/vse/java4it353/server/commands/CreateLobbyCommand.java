@@ -41,7 +41,7 @@ public class CreateLobbyCommand implements ICommand{
             return "error while creating lobby";
         }
         String lobbies = game.JSONLobbies();
-        //game.notifyPlayers(lobbies, clientSockets);
+        game.notifyPlayers(lobbies, clientSockets);
         return "J " + mapper.writeValueAsString(lobby);
     }
 }
