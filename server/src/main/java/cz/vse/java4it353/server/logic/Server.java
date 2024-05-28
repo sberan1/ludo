@@ -25,7 +25,7 @@ public class Server {
     private boolean isRunning;
     private final ExecutorService clientHandlingPool;
     private final List<Socket> clientSockets; // Track active client sockets
-    private static final Logger log = LoggerFactory.getLogger(Main.class);
+    private static final Logger log = LoggerFactory.getLogger(Server.class);
 
 
     public Server(int port) {

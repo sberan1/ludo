@@ -80,7 +80,12 @@ public class Lobby {
     public void sendMessageToAllPlayers(String message) {
         for (Player player : players) {
             try {
+                if (player == null) {
+                    logger.info("Player is null, not enough players in the lobby");
+                    continue;
+                }
                 PrintWriter out = new PrintWriter(player.getClientSocket().getOutputStream(), true);
+                logger.info("Sending message to player: " + player.getName() + " message: " + message);
                 out.println(message);
             } catch (IOException e) {
                 System.out.println("Error sending message to player: " + e.getMessage());
