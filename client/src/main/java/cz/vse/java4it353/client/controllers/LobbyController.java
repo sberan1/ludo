@@ -5,6 +5,7 @@ import cz.vse.java4it353.client.Main;
 import cz.vse.java4it353.client.MessageObserver;
 import cz.vse.java4it353.client.commands.CommandFactory;
 import cz.vse.java4it353.client.commands.ICommand;
+import cz.vse.java4it353.client.model.Board;
 import cz.vse.java4it353.client.model.Lobby;
 import cz.vse.java4it353.client.model.Player;
 import javafx.application.Platform;
@@ -12,7 +13,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +28,7 @@ import java.util.stream.Collectors;
 public class LobbyController implements MessageObserver, Observer {
 
     private static final Logger log = LoggerFactory.getLogger(LobbyController.class);
+    public static Stage primaryStage;
     @FXML
     public RadioButton rbCervena;
     @FXML
@@ -37,8 +43,9 @@ public class LobbyController implements MessageObserver, Observer {
     public Label labelColor;
     private Map<String, List<String>> lobbyPlayersMap = new HashMap<>();
     private List<Lobby> allLobies = new ArrayList<>();
+    private Lobby aktualniLobby;
     private Client client;
-    private Player ogPlayer = new Player();
+    private String color;
     private String selectedLobby;
     private CommandFactory cf;
     private String response;
@@ -69,7 +76,6 @@ public class LobbyController implements MessageObserver, Observer {
         });
         client.send("L " + Main.getPlayerName());
     }
-
     private void handleLobbySelection(String selectedLobbyName) {
         this.selectedLobby = selectedLobbyName;
         log.debug("Započata metoda handleLobbySelection");
@@ -102,15 +108,38 @@ public class LobbyController implements MessageObserver, Observer {
                 .collect(Collectors.toList());
         ObservableList<String> observableLobbyNames = FXCollections.observableArrayList(lobbyNames);
         lobbiesListView.setItems(observableLobbyNames);
+        labelColor.setText("Moje barva: " + color);
+        lobbiesListView.getSelectionModel().clearSelection();
+        playersListView.getSelectionModel().clearSelection();
+        rbCervena.setSelected(false);
+        rbZluta.setSelected(false);
+        rbModra.setSelected(false);
+        rbZelena.setSelected(false);
     }
 
     @FXML
     private void handleChooseColor() {
-
+        boolean cervena = rbCervena.isSelected();
+        boolean zluta = rbZluta.isSelected();
+        boolean modra = rbModra.isSelected();
+        boolean zelena = rbZelena.isSelected();
+        String barva;
+        if(cervena)
+            barva = "RED";
+        else if(zluta)
+            barva = "YELLOW";
+        else if(modra)
+            barva = "BLUE";
+        else if(zelena)
+            barva = "GREEN";
+        else return;
+        color = barva;
+        client.send("CC " + barva);
     }
 
     @FXML
     private void handleStartGame() {
+        client.send("S " + aktualniLobby.getName());
     }
 
     @FXML
@@ -172,10 +201,38 @@ public class LobbyController implements MessageObserver, Observer {
                 }
                 allLobies.add(newLobby);
             }
+            aktualniLobby = newLobby; // Tohle snad bude fungovat
         }
         else if(arg instanceof List) {
             List<Lobby> newLobbies = (List<Lobby>) arg;
             allLobies = newLobbies;
+        }
+        else if(arg instanceof Board) {
+            Platform.runLater(() -> {
+                Board board = (Board) arg;
+                aktualniLobby.setBoardState(board);
+
+
+                // Načtení FXML souboru
+                Parent root = null;
+                try {
+                    root = FXMLLoader.load(getClass().getResource("/aplikace.fxml"));
+                } catch (IOException e) {
+                    log.error("Ocitl se problém v načítání aplikace.fxml", e);
+                }
+
+                // Vytvoření scény
+                Scene scene = new Scene(root, 703, 980);
+
+                // Nastavení scény a zobrazení hlavního okna
+                primaryStage.close();
+                primaryStage.setTitle("Člověče, nezlob se! - " + Main.getPlayerName());
+                primaryStage.setScene(scene);
+                primaryStage.show();
+                log.info("Spuštěna aplikace z aplikace.fxml se jménem " + Main.getPlayerName());
+            });
+
+            return;
         }
 
         log.debug("Pokus o spočítání počtu lobbies");

@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class Board {
     private Map<String, Player> playerMap;
-    private String playerOnTurn;
+    private Player playerOnTurn;
     private int diceValue;
 
     public Board() {
@@ -20,11 +20,11 @@ public class Board {
         this.playerMap = playerMap;
     }
 
-    public String getPlayerOnTurn() {
+    public Player getPlayerOnTurn() {
         return playerOnTurn;
     }
 
-    public void setPlayerOnTurn(String playerOnTurn) {
+    public void setPlayerOnTurn(Player playerOnTurn) {
         this.playerOnTurn = playerOnTurn;
     }
 

@@ -19,6 +19,7 @@ public class CommandFactory {
         commandMap.put("M", new MoveTokenCommand());*/
         commandMap.put("L", new SyncLobbiesCommand(o));
         commandMap.put("J", new CreateLobbyCommand(o));
+        commandMap.put("B", new StartGameCommand(o));
         //.put("E", null);
     }
 
