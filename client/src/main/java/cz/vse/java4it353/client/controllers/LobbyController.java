@@ -163,8 +163,15 @@ public class LobbyController implements MessageObserver, Observer {
     private void handleResponseFromServer(String data) throws Exception {
         log.debug("string před rozdělením: " + data);
         String[] handledData = data.split(" ", 2);
-        ICommand command = cf.getCommand(handledData[0]);
-        command.execute(handledData[1]);
+        ICommand command;
+        if(handledData.length == 1) {
+            command = cf.getCommand("L");
+            command.execute(handledData[0]);
+        }
+        else {
+            command = cf.getCommand(handledData[0]);
+            command.execute(handledData[1]);
+        }
     }
 
     @Override
@@ -193,10 +200,13 @@ public class LobbyController implements MessageObserver, Observer {
             }
             else {
                 for(Lobby lobby: allLobies) {
+                    log.debug("Probíhá porovnání.\nProcházím lobby: " + lobby.getName() + "\nZískaná lobby: " + newLobby.getName());
                     if(lobby.getName().equalsIgnoreCase(newLobby.getName())) {
+                        log.info("Názvy odpovídají");
+                        log.debug(lobby.getName());
+                        log.debug(newLobby.getName());
                         int index = allLobies.indexOf(lobby);
                         allLobies.remove(index);
-                        allLobies.add(newLobby);
                     }
                 }
                 allLobies.add(newLobby);

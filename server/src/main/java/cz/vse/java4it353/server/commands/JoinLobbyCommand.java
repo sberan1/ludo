@@ -6,15 +6,18 @@ import cz.vse.java4it353.server.model.Lobby;
 import cz.vse.java4it353.server.model.Player;
 
 import java.net.Socket;
+import java.util.List;
 import java.util.logging.Logger;
 
 public class JoinLobbyCommand implements ICommand {
     private Socket clientSocket;
+    private List<Socket> clientSockets;
     Logger logger = Logger.getLogger(JoinLobbyCommand.class.getName());
     ObjectMapper mapper = new ObjectMapper();
 
-    public JoinLobbyCommand(Socket clientSocket) {
+    public JoinLobbyCommand(Socket clientSocket, List<Socket> clientSockets) {
         this.clientSocket = clientSocket;
+        this.clientSockets = clientSockets;
     }
 
     @Override
@@ -35,6 +38,7 @@ public class JoinLobbyCommand implements ICommand {
         }
 
         lobby.addPlayer(player);
+        game.notifyPlayers(game.JSONLobbies(), clientSockets);
         return "J " + mapper.writeValueAsString(lobby);
     }
 }
