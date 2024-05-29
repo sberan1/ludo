@@ -15,9 +15,11 @@ public class Listener implements Runnable {
     private final List<MessageObserver> observers = new ArrayList<>();
     private final InputStream inputStream;
     private volatile boolean running = true;
+    private final IConnectionLostHandler clh;
 
-    public Listener(InputStream inputStream) {
+    public Listener(InputStream inputStream, IConnectionLostHandler handler) {
         this.inputStream = inputStream;
+        this.clh = handler;
     }
     public void addObserver(MessageObserver observer) {
         observers.add(observer);
@@ -53,9 +55,13 @@ public class Listener implements Runnable {
             }
         } catch (IOException e) {
             if (running)
+            {
                 log.error("Exception occurred while listening for incoming communication.", e);
-             else
+                clh.onConnectionLost();
+            }
+             else {
                 log.info("Listener was stopped.");
+             }
         }
     }
 }
