@@ -28,8 +28,9 @@ public class MoveTokenCommand implements ICommand {
         int tokenIndex = Integer.parseInt(data);
         player.moveToken(tokenIndex, board.getDiceValue(), lobby);
         board.nextPlayerOnTurn();
-
-        return "B " + mapper.writeValueAsString(lobby.getBoardState());
+        var json = mapper.writeValueAsString(board);
+        lobby.sendMessageToAllPlayers("B " + json);
+        return "B " + json;
     }
 
     private void validateCommand(Board board, Player player, String data) throws ForbiddenMoveException {
