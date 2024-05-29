@@ -6,14 +6,13 @@ import cz.vse.java4it353.server.logic.Game;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.MalformedParameterizedTypeException;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class Player {
+    private String uuid;
     private String name;
     @JsonIgnore
     private Socket clientSocket;
@@ -23,6 +22,7 @@ public class Player {
     public Player(String name, Socket clientSocket) {
         this.name = name;
         this.clientSocket = clientSocket;
+        uuid = UUID.randomUUID().toString();
     }
 
     public Player() {
@@ -37,6 +37,14 @@ public class Player {
         for (int i = 0; i < tokens.length; i++) {
             tokens[i] = new Token();
         }
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
     public String getName() {
