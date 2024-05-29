@@ -113,11 +113,14 @@ public class Player {
             int newPosition = token.getPosition() + diceValue;
             boolean overflew = newPosition > Board.BOARD_SIZE;
 
-            if (!overflew) {
+            if (overflew) {
                 return false;
             }
 
             for (Token t : tokens) {
+                if(t.equals(token)){
+                    continue;
+                }
                 if (t.getPosition() == newPosition) {
                     return false;
                 }
