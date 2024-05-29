@@ -19,8 +19,8 @@ public class ChooseTokenCommand extends Observable implements ICommand {
     public String execute(String data) throws Exception {
         log.info("Teď jsem v ChooseTokenCommand");
         log.debug(data);
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(data);
+        //ObjectMapper objectMapper = new ObjectMapper();
+        //JsonNode jsonNode = objectMapper.readTree(data);
         //Lobby lobby = objectMapper.treeToValue(jsonNode, Lobby.class);
 
         //setChanged();

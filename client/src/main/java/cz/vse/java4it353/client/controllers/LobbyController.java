@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 public class LobbyController implements MessageObserver, Observer {
 
     private static final Logger log = LoggerFactory.getLogger(LobbyController.class);
+    private boolean isApplicationLoaded = false;
     public static Stage primaryStage;
     @FXML
     public RadioButton rbCervena;
@@ -191,15 +192,17 @@ public class LobbyController implements MessageObserver, Observer {
 
     @Override
     public void onMessageReceived(String message) {
-        log.debug("Přijatá zpráva v LobbyControlleru: " + message);
-        synchronized (this) {
-            response = message;
-        }
-        log.info("Posílám data ke zpracování");
-        try {
-            handleResponseFromServer(response);
-        } catch (Exception e) {
-            log.error("There was a problem with json processing.", e);
+        if(!isApplicationLoaded) {
+            log.debug("Přijatá zpráva v LobbyControlleru: " + message);
+            synchronized (this) {
+                response = message;
+            }
+            log.info("Posílám data ke zpracování");
+            try {
+                handleResponseFromServer(response);
+            } catch (Exception e) {
+                log.error("There was a problem with json processing.", e);
+            }
         }
     }
     private void handleSingleLobby(Lobby arg) {
@@ -235,35 +238,38 @@ public class LobbyController implements MessageObserver, Observer {
             handleMultipleLobbies((List<Lobby>) arg);
         } else if (arg instanceof Board) {
             Platform.runLater(() -> {
-                Board board = (Board) arg;
-                aktualniLobby.setBoardState(board);
-                Main.setLobby(aktualniLobby);
+                if(!isApplicationLoaded) {
 
-                log.warn("LOBBY NÁZEV: " + Main.getLobby().getName());
-                for(Player player : Main.getLobby().getPlayers()) {
-                    if(player != null) {
-                        log.warn("Jméno hráče: " + player.getName());
+                    Board board = (Board) arg;
+                    aktualniLobby.setBoardState(board);
+                    Main.setLobby(aktualniLobby);
+
+                    log.warn("LOBBY NÁZEV: " + Main.getLobby().getName());
+                    for(Player player : Main.getLobby().getPlayers()) {
+                        if(player != null) {
+                            log.warn("Jméno hráče: " + player.getName());
+                        }
                     }
-                }
-                // Načtení FXML souboru
-                Parent root = null;
-                try {
-                    root = FXMLLoader.load(getClass().getResource("/aplikace.fxml"));
-                } catch (IOException e) {
-                    log.error("Ocitl se problém v načítání aplikace.fxml", e);
-                }
+                    // Načtení FXML souboru
+                    Parent root = null;
+                    try {
+                        root = FXMLLoader.load(getClass().getResource("/aplikace.fxml"));
+                    } catch (IOException e) {
+                        log.error("Ocitl se problém v načítání aplikace.fxml", e);
+                    }
 
-                // Vytvoření scény
-                Scene scene = new Scene(root, 703, 980);
+                    // Vytvoření scény
+                    Scene scene = new Scene(root, 703, 980);
 
-                // Nastavení scény a zobrazení hlavního okna
-                primaryStage.close();
-                primaryStage.setTitle("Člověče, nezlob se! - " + Main.getPlayerName());
-                primaryStage.setScene(scene);
-                primaryStage.show();
-                log.info("Spuštěna aplikace z aplikace.fxml se jménem " + Main.getPlayerName());
+                    // Nastavení scény a zobrazení hlavního okna
+                    primaryStage.close();
+                    primaryStage.setTitle("Člověče, nezlob se! - " + Main.getPlayerName());
+                    primaryStage.setScene(scene);
+                    primaryStage.show();
+                    log.info("Spuštěna aplikace z aplikace.fxml se jménem " + Main.getPlayerName());
+                    isApplicationLoaded = true;
+                }
             });
-
             return;
         }
 

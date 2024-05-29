@@ -5,14 +5,17 @@ import cz.vse.java4it353.client.Main;
 import cz.vse.java4it353.client.MessageObserver;
 import cz.vse.java4it353.client.commands.CommandFactory;
 import cz.vse.java4it353.client.commands.ICommand;
+import cz.vse.java4it353.client.enums.ColorEnum;
 import cz.vse.java4it353.client.model.Board;
 import cz.vse.java4it353.client.model.Lobby;
 import cz.vse.java4it353.client.model.Player;
+import cz.vse.java4it353.client.model.Token;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Pair;
@@ -25,14 +28,12 @@ import java.util.*;
 
 public class HomeController implements MessageObserver, Observer {
     private static final Logger log = LoggerFactory.getLogger(HomeController.class);
-
-    private int moveToken = 0;
     private ImageView selectedFigurka = null;
     private Map<ImageView, ImageView> poziceFigurky = new HashMap<>();
     private Map<String, ImageView> nasazeniPozice = new HashMap<>();
     private Map<String, List<Pair<Double, Double>>> startPositions = new HashMap<>();
     private Client client;
-    private Lobby aktualniLobby;
+    private Lobby aktualniLobby = new Lobby();
     private Player aktualniPlayer = new Player();;
     private List<Lobby> allLobies = new ArrayList<>();
     private CommandFactory cf;
@@ -190,6 +191,7 @@ public class HomeController implements MessageObserver, Observer {
     private ImageView z42;
     @FXML
     private ImageView z41;
+    private Map<String, ImageView> imageViewMap;
     public void initialize() {
         try {
             client = Client.getInstance();
@@ -199,6 +201,65 @@ public class HomeController implements MessageObserver, Observer {
         }
         cf = new CommandFactory(this);
         aktualniLobby = Main.getLobby();
+
+        imageViewMap = new HashMap<>();
+        imageViewMap.put("c1xl31xm21xz11", c1xl31xm21xz11);
+        imageViewMap.put("c2xl32xm22xz12", c2xl32xm22xz12);
+        imageViewMap.put("c3xl33xm23xz13", c3xl33xm23xz13);
+        imageViewMap.put("c4xl34xm24xz14", c4xl34xm24xz14);
+        imageViewMap.put("c5xl35xm25xz15", c5xl35xm25xz15);
+        imageViewMap.put("c6xl36xm26xz16", c6xl36xm26xz16);
+        imageViewMap.put("c7xl37xm27xz17", c7xl37xm27xz17);
+        imageViewMap.put("c8xl38xm28xz18", c8xl38xm28xz18);
+        imageViewMap.put("c9xl39xm29xz19", c9xl39xm29xz19);
+        imageViewMap.put("c10xl40xm30xz20", c10xl40xm30xz20);
+        imageViewMap.put("c11xl1xm31xz21", c11xl1xm31xz21);
+        imageViewMap.put("c12xl2xm32xz22", c12xl2xm32xz22);
+        imageViewMap.put("c13xl3xm33xz23", c13xl3xm33xz23);
+        imageViewMap.put("c14xl4xm34xz24", c14xl4xm34xz24);
+        imageViewMap.put("c15xl5xm35xz25", c15xl5xm35xz25);
+        imageViewMap.put("c16xl6xm36xz26", c16xl6xm36xz26);
+        imageViewMap.put("c17xl7xm37xz27", c17xl7xm37xz27);
+        imageViewMap.put("c18xl8xm38xz28", c18xl8xm38xz28);
+        imageViewMap.put("c19xl9xm39xz29", c19xl9xm39xz29);
+        imageViewMap.put("c20xl10xm40xz30", c20xl10xm40xz30);
+        imageViewMap.put("c21xl11xm1xz31", c21xl11xm1xz31);
+        imageViewMap.put("c22xl12xm2xz32", c22xl12xm2xz32);
+        imageViewMap.put("c23xl13xm3xz33", c23xl13xm3xz33);
+        imageViewMap.put("c24xl14xm4xz34", c24xl14xm4xz34);
+        imageViewMap.put("c25xl15xm5xz35", c25xl15xm5xz35);
+        imageViewMap.put("c26xl16xm6xz36", c26xl16xm6xz36);
+        imageViewMap.put("c27xl17xm7xz37", c27xl17xm7xz37);
+        imageViewMap.put("c28xl18xm8xz38", c28xl18xm8xz38);
+        imageViewMap.put("c29xl19xm9xz39", c29xl19xm9xz39);
+        imageViewMap.put("c30xl20xm10xz40", c30xl20xm10xz40);
+        imageViewMap.put("c31xl21xm11xz1", c31xl21xm11xz1);
+        imageViewMap.put("c32xl22xm12xz12", c32xl22xm12xz12);
+        imageViewMap.put("c33xl23xm13xz3", c33xl23xm13xz3);
+        imageViewMap.put("c34xl24xm14xz4", c34xl24xm14xz4);
+        imageViewMap.put("c35xl25xm15xz5", c35xl25xm15xz5);
+        imageViewMap.put("c36xl26xm16xz6", c36xl26xm16xz6);
+        imageViewMap.put("c37xl27xm17xz7", c37xl27xm17xz7);
+        imageViewMap.put("c38xl28xm18xz8", c38xl28xm18xz8);
+        imageViewMap.put("c39xl29xm19xz9", c39xl29xm19xz9);
+        imageViewMap.put("c40xl30xm20xz10", c40xl30xm20xz10);
+        imageViewMap.put("c41", c41);
+        imageViewMap.put("c42", c42);
+        imageViewMap.put("c43", c43);
+        imageViewMap.put("c44", c44);
+        imageViewMap.put("m44", m44);
+        imageViewMap.put("m43", m43);
+        imageViewMap.put("m42", m42);
+        imageViewMap.put("m41", m41);
+        imageViewMap.put("l41", l41);
+        imageViewMap.put("l42", l42);
+        imageViewMap.put("l43", l43);
+        imageViewMap.put("l44", l44);
+        imageViewMap.put("z44", z44);
+        imageViewMap.put("z43", z43);
+        imageViewMap.put("z42", z42);
+        imageViewMap.put("z41", z41);
+
         figurka1C.setOnMouseClicked(this::handleFigurkaClick);
         figurka2C.setOnMouseClicked(this::handleFigurkaClick);
         figurka3C.setOnMouseClicked(this::handleFigurkaClick);
@@ -221,49 +282,123 @@ public class HomeController implements MessageObserver, Observer {
         nasazeniPozice.put("M", c21xl11xm1xz31);
         nasazeniPozice.put("Z", c31xl21xm11xz1);
 
-        List<Pair<Double, Double>> cerveny = Arrays.asList(
+        List<Pair<Double, Double>> cervenyHome = Arrays.asList(
                 new Pair<>(figurka1C.getLayoutX(), figurka1C.getLayoutY()),
                 new Pair<>(figurka2C.getLayoutX(), figurka2C.getLayoutY()),
                 new Pair<>(figurka3C.getLayoutX(), figurka3C.getLayoutY()),
                 new Pair<>(figurka4C.getLayoutX(), figurka4C.getLayoutY())
         );
-        List<Pair<Double, Double>> zluty = Arrays.asList(
+        List<Pair<Double, Double>> zlutyHome = Arrays.asList(
                 new Pair<>(figurka1L.getLayoutX(), figurka1L.getLayoutY()),
                 new Pair<>(figurka2L.getLayoutX(), figurka2L.getLayoutY()),
                 new Pair<>(figurka3L.getLayoutX(), figurka3L.getLayoutY()),
                 new Pair<>(figurka4L.getLayoutX(), figurka4L.getLayoutY())
         );
-        List<Pair<Double, Double>> modry = Arrays.asList(
+        List<Pair<Double, Double>> modryHome = Arrays.asList(
                 new Pair<>(figurka1M.getLayoutX(), figurka1M.getLayoutY()),
                 new Pair<>(figurka2M.getLayoutX(), figurka2M.getLayoutY()),
                 new Pair<>(figurka3M.getLayoutX(), figurka3M.getLayoutY()),
                 new Pair<>(figurka4M.getLayoutX(), figurka4M.getLayoutY())
         );
-        List<Pair<Double, Double>> zeleny = Arrays.asList(
+        List<Pair<Double, Double>> zelenyHome = Arrays.asList(
                 new Pair<>(figurka1Z.getLayoutX(), figurka1Z.getLayoutY()),
                 new Pair<>(figurka2Z.getLayoutX(), figurka2Z.getLayoutY()),
                 new Pair<>(figurka3Z.getLayoutX(), figurka3Z.getLayoutY()),
                 new Pair<>(figurka4Z.getLayoutX(), figurka4Z.getLayoutY())
         );
 
-        startPositions.put("C", cerveny);
-        startPositions.put("L", zluty);
-        startPositions.put("M", modry);
-        startPositions.put("Z", zeleny);
+        startPositions.put("C", cervenyHome);
+        startPositions.put("L", zlutyHome);
+        startPositions.put("M", modryHome);
+        startPositions.put("Z", zelenyHome);
         firstStart();
     }
 
 
     private void handleFigurkaClick(MouseEvent event) {
         selectedFigurka = (ImageView) event.getSource();
-        int pohyb = aktualniLobby.getBoardState().getDiceValue();
-        log.info("Hozeno na kostce: " + pohyb);
-        selectedFigurka = null;
+        String zvolenaFigurka = selectedFigurka.getId();
+        int token = Integer.parseInt(zvolenaFigurka.substring(7, 8)) - 1; // "figurka1C" -> "1" -> token 0
+
+        client.send("M " + token);
     }
-    public void hodKostkou(ActionEvent actionEvent) throws IOException {
+    public void hodKostkou(ActionEvent actionEvent) {
         client.send("R");
     }
-    private void handlePositionClick(MouseEvent event) {
+    private ImageView getFigurka(String colour, int token) {
+        switch (colour.toUpperCase()) {
+            case "RED":
+                switch (token) {
+                    case 0: return figurka1C;
+                    case 1: return figurka2C;
+                    case 2: return figurka3C;
+                    case 3: return figurka4C;
+                }
+                break;
+            case "YELLOW":
+                switch (token) {
+                    case 0: return figurka1L;
+                    case 1: return figurka2L;
+                    case 2: return figurka3L;
+                    case 3: return figurka4L;
+                }
+                break;
+            case "BLUE":
+                switch (token) {
+                    case 0: return figurka1M;
+                    case 1: return figurka2M;
+                    case 2: return figurka3M;
+                    case 3: return figurka4M;
+                }
+                break;
+            case "GREEN":
+                switch (token) {
+                    case 0: return figurka1Z;
+                    case 1: return figurka2Z;
+                    case 2: return figurka3Z;
+                    case 3: return figurka4Z;
+                }
+                break;
+        }
+        return null;
+    }
+    private ImageView getImageView(String colour, int position) {
+        log.debug("Poskytnutá barva do metody: " + colour);
+        if(colour.equalsIgnoreCase("red")) {
+            colour = "c";
+            log.debug("Barva byla změněna na " + colour);
+        }
+        else if(colour.equalsIgnoreCase("yellow")) {
+            colour = "l";
+            log.debug("Barva byla změněna na " + colour);
+        }
+        else if(colour.equalsIgnoreCase("blue")) {
+            colour = "m";
+            log.debug("Barva byla změněna na " + colour);
+        }
+        else if(colour.equalsIgnoreCase("green")) {
+            colour = "z";
+            log.debug("Barva byla změněna na " + colour);
+        }
+        else {
+            log.debug("Barva nebyla změněna");
+        }
+        String key = colour.toLowerCase().charAt(0) + Integer.toString(position + 1) + "x"; // PROBLÉM SE ZELENOU BARVOU, Z1X NEEXISTUJE
+        ImageView obrazek;
+        log.debug("Klíč, podle kterého hledat: " + key);
+        for (Map.Entry<String, ImageView> entry : imageViewMap.entrySet()) {
+            String klic = entry.getKey();
+            log.debug("Vyhledávám v klíči: " + klic);
+            if(klic.contains(key)) {
+                log.debug("Nalezen klíč, získávám obrázek");
+                obrazek = entry.getValue();
+                return obrazek;
+            }
+        }
+        return null;
+    }
+    private void moveTokens() {
+        log.info("Započala metoda pro přesun");
         // Posun figurky na pozici, kterou mi vrátí server - musím si jí vypočítat sám
         // c1xl31xm21xz11
         // c1 = Červená barva 1. políčko
@@ -271,14 +406,67 @@ public class HomeController implements MessageObserver, Observer {
         // m21 = Modrá barva 21. políčko
         // z11 = Zelená barva 11. políčko
 
+        Board aktualniDeska = aktualniLobby.getBoardState();
+        Player aktualniHrac = aktualniDeska.getPlayerOnTurn();
+        String barvaAktualniHrac = aktualniDeska.getPlayerColour(aktualniHrac.getName());
+        ImageView figurka;
+        ImageView poziceNaDesce;
+        int poziceTokenu = 0;
+        int aktualniToken = 0;
+        for (Token token : aktualniHrac.getTokens()) {
+            poziceTokenu = token.getPosition();
+            log.debug("Pozice tokenu: " + poziceTokenu);
+            if(poziceTokenu == 0) {
+                log.debug("Token je nula, nic tedy nepřesouvám");
+                continue;
+            }
+            log.debug("Token není nula");
+            figurka = getFigurka(barvaAktualniHrac, aktualniToken);
+            log.debug("Získaná figurka: " + figurka.getId());
+            log.debug("Aktuální token: " + aktualniToken);
+            poziceNaDesce = getImageView(barvaAktualniHrac, poziceTokenu);
+
+            figurka.setLayoutX(poziceNaDesce.getLayoutX());
+            figurka.setLayoutY(poziceNaDesce.getLayoutY());
+            aktualniToken++;
+        }
+/*
+        String zvolenaFigurka = figurka.getId();
+        String barva = String.valueOf(zvolenaFigurka.charAt(zvolenaFigurka.length() - 1)).toLowerCase();
+        int pohyb = aktualniLobby.getBoardState().getDiceValue();
+
+        log.debug("Získaná barva v metodě moveTokens: " + barva);
+        log.debug("Figurka se posune o: " + pohyb);
+        log.debug("Pokus o získání imageViewPozice");
+        ImageView imageViewPozice = getImageView(barva, pohyb);
+        log.debug("Získán imageViewPozice: " + imageViewPozice.getId());
+        figurka.setLayoutX(imageViewPozice.getLayoutX());
+        figurka.setLayoutY(imageViewPozice.getLayoutY());
+
+        selectedFigurka = null;*/
     }
 
     public void odeslat(ActionEvent actionEvent) throws IOException {
-        String message = vstupTextField.getText();
+        /*String message = vstupTextField.getText();
         String command = "H " + message;
         Client client = Client.getInstance();
         client.send(command);
-        vstupTextField.clear();
+        vstupTextField.clear();*/
+        int i = 0;
+        log.info("Vypíšu informace o lobby");
+        log.debug("Název lobby: " + aktualniLobby.getName());
+        for(Player player : aktualniLobby.getPlayers()) {
+            if(player != null) {
+                log.debug("Jméno hráče: " + player.getName());
+                i = 0;
+                for(Token token : player.getTokens()) {
+                    log.debug("Token hráče: " + i + "-" + token.getPosition());
+                    i++;
+                }
+            }
+        }
+        log.debug("Kolik je dice value: " + aktualniLobby.getBoardState().getDiceValue());
+        log.debug("Hráč na řadě: " + aktualniLobby.getBoardState().getPlayerOnTurn().getName());
     }
     private void nasazeniFigurky() {
         String zvolenaFigurka = selectedFigurka.getId();
@@ -351,10 +539,33 @@ public class HomeController implements MessageObserver, Observer {
         }
     }
 
+    private Lobby placeHolderLobby = new Lobby();
     @Override
     public void update(Observable o, Object arg) {
         if(arg instanceof Board) {
-            aktualniLobby.setBoardState((Board) arg);
+            log.debug("Zachycena nová deska");
+            Board nova = (Board) arg;
+
+            log.info("Nastavuji novou desku do lobby");
+            aktualniLobby.setBoardState(nova);
+
+            int i = 0;
+            log.info("Informace o nové lobby");
+            log.debug("Název lobby: " + aktualniLobby.getName());
+            for(Player player : aktualniLobby.getPlayers()) {
+                if(player != null) {
+                    log.debug("Jméno hráče: " + player.getName());
+                    i = 0;
+                    for(Token token : player.getTokens()) {
+                        log.debug("Token hráče: " + i + "-" + token.getPosition());
+                        i++;
+                    }
+                }
+            }
+            log.debug("Kolik je dice value: " + aktualniLobby.getBoardState().getDiceValue());
+            log.debug("Hráč na řadě: " + aktualniLobby.getBoardState().getPlayerOnTurn().getName());
+            //log.info("Spouštím metodu pro přesun tokenů");
+            //moveTokens();
         }
     }
 }
