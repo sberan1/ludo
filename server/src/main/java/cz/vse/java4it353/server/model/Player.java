@@ -2,6 +2,7 @@ package cz.vse.java4it353.server.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import cz.vse.java4it353.server.enums.ColorEnum;
+import cz.vse.java4it353.server.exception.ForbiddenMoveException;
 import cz.vse.java4it353.server.logic.Game;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +59,7 @@ public class Player {
     public Token[] getTokens() {
         return tokens;
     }
-    public void moveToken(int tokenIndex, int steps, Lobby lobby) {
+    public void moveToken(int tokenIndex, int steps, Lobby lobby) throws ForbiddenMoveException {
         int newPosition = 0;
         if (tokenIndex == 0){
             if (steps == 6){
@@ -70,8 +71,15 @@ public class Player {
             }
         }
         else {
-            newPosition = tokens[tokenIndex].move(steps);
-            log.info("Player " + name + " moved token " + tokenIndex + " to position " + newPosition);
+            if (canMove(tokens[tokenIndex], steps)){
+                newPosition = tokens[tokenIndex].move(steps);
+                log.info("Player " + name + " moved token " + tokenIndex + " to position " + newPosition);
+
+            }
+            else{
+                log.info("Player " + name + " couldn't move token " + tokenIndex + " to position " + newPosition + " because he already has a token there or because it overflows the board");
+                throw new ForbiddenMoveException("Player " + name + " couldn't move token " + tokenIndex + " to position " + newPosition + " because he already has a token there or because it overflows the board");
+            }
         }
 
         Map <ColorEnum, Player> playerMap = lobby.getBoardState().getPlayerMap();
