@@ -59,6 +59,7 @@ public class Main extends Application {
     @Override
     public void stop() throws Exception {
         Client.getInstance().closeConnection();
+        Client.getInstance().stop();
         super.stop();
     }
 }

@@ -35,6 +35,11 @@ public class Listener implements Runnable {
     }
     public void stop() {
         running = false;
+        try {
+            inputStream.close();
+        } catch(IOException e) {
+            log.error("Error while closing input stream", e);
+        }
     }
 
     @Override

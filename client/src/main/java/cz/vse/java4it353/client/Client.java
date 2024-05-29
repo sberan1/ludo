@@ -63,4 +63,13 @@ public class Client {
             logger.error("Exception occurred while closing connection.", e);
         }
     }
+    public void stop() throws IOException {
+        listener.stop();
+        try {
+            listenerThread.join();  // Počkejte, až se listener ukončí
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        clientSocket.close();
+    }
 }
