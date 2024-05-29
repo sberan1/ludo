@@ -3,6 +3,8 @@ package cz.vse.java4it353.server.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import cz.vse.java4it353.server.enums.ColorEnum;
 import cz.vse.java4it353.server.logic.Game;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.MalformedParameterizedTypeException;
 import java.net.Socket;
@@ -16,6 +18,7 @@ public class Player {
     @JsonIgnore
     private Socket clientSocket;
     Token[] tokens = {new Token(), new Token(), new Token(), new Token()};
+    private static final Logger log = LoggerFactory.getLogger(Player.class);
 
     public Player(String name, Socket clientSocket) {
         this.name = name;
@@ -48,7 +51,20 @@ public class Player {
         return tokens;
     }
     public void moveToken(int tokenIndex, int steps, Lobby lobby) {
-        int newPosition = tokens[tokenIndex].move(steps);
+        int newPosition = 0;
+        if (tokenIndex == 0){
+            if (steps == 6){
+                newPosition = tokens[tokenIndex].move(1);
+                log.info("Player " + name + " rolled 6, token " + tokenIndex + " put on board");
+            }
+            else {
+                log.info("Player didn't roll 6, token " + tokenIndex + " couldn't be put on board");
+            }
+        }
+        else {
+            newPosition = tokens[tokenIndex].move(steps);
+            log.info("Player " + name + " moved token " + tokenIndex + " to position " + newPosition);
+        }
 
         Map <ColorEnum, Player> playerMap = lobby.getBoardState().getPlayerMap();
         ColorEnum colorPlayer = null;

@@ -5,7 +5,14 @@ public class Token {
     private int position;
 
     public int move(int steps) {
-        position += steps;
+        if (position == 0){
+            if (steps == 6){
+                position = 1;
+            }
+        }
+        else {
+            position += steps;
+        }
         return position;
     }
 
