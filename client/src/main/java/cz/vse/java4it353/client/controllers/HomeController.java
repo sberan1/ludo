@@ -10,6 +10,7 @@ import cz.vse.java4it353.client.model.Board;
 import cz.vse.java4it353.client.model.Lobby;
 import cz.vse.java4it353.client.model.Player;
 import cz.vse.java4it353.client.model.Token;
+import javafx.beans.binding.Bindings;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -19,6 +20,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,13 +33,10 @@ import java.util.stream.Collectors;
 public class HomeController implements MessageObserver, Observer {
     private static final Logger log = LoggerFactory.getLogger(HomeController.class);
     private ImageView selectedFigurka = null;
-    private Map<ImageView, ImageView> poziceFigurky = new HashMap<>();
     private Map<String, ImageView> nasazeniPozice = new HashMap<>();
     private Map<String, List<Pair<Double, Double>>> startPositions = new HashMap<>();
     private Client client;
     private Lobby aktualniLobby = new Lobby();
-    private Player aktualniPlayer = new Player();;
-    private List<Lobby> allLobies = new ArrayList<>();
     private CommandFactory cf;
     @FXML
     private Button hodKostkouButton;
@@ -194,6 +193,7 @@ public class HomeController implements MessageObserver, Observer {
     @FXML
     private ImageView z41;
     private Map<String, ImageView> imageViewMap;
+    private String barvaHrace;
     public void initialize() {
         try {
             client = Client.getInstance();
@@ -203,6 +203,18 @@ public class HomeController implements MessageObserver, Observer {
         }
         cf = new CommandFactory(this);
         aktualniLobby = Main.getLobby();
+        if(aktualniLobby != null && aktualniLobby.getPlayers() != null) {
+            barvaHrace = aktualniLobby.getPlayers().stream()
+                    .filter(Objects::nonNull) // Pouze ne-null hráče
+                    .filter(player -> Main.getPlayerName().equals(player.getName())) // Hráč podle jména
+                    .map(player -> aktualniLobby.getBoardState().getPlayerColour(player.getName())) // Mapuje hráče na barvu
+                    .findFirst() // Najde první shodu
+                    .orElse(null); // Vrátí barvu nebo null, pokud žádný hráč neodpovídá
+        }
+        if(barvaHrace.equalsIgnoreCase("red")) barvaHrace = "c";
+        else if(barvaHrace.equalsIgnoreCase("yellow")) barvaHrace = "l";
+        else if(barvaHrace.equalsIgnoreCase("blue")) barvaHrace = "m";
+        else if(barvaHrace.equalsIgnoreCase("green")) barvaHrace = "z";
 
         imageViewMap = new HashMap<>();
         imageViewMap.put("c1xl31xm21xz11", c1xl31xm21xz11);
@@ -340,6 +352,11 @@ public class HomeController implements MessageObserver, Observer {
     private void handleFigurkaClick(MouseEvent event) {
         selectedFigurka = (ImageView) event.getSource();
         String zvolenaFigurka = selectedFigurka.getId();
+        String barvaFigurky = zvolenaFigurka.substring(8, 9);
+        if(!barvaFigurky.equalsIgnoreCase(barvaHrace)) {
+            return;
+        }
+
         chosenToken = Integer.parseInt(zvolenaFigurka.substring(7, 8)) - 1; // "figurka1C" -> "1" -> token 0
 
         chatTextArea.appendText("\nKliknul jsem na figurku " + zvolenaFigurka);
@@ -409,11 +426,15 @@ public class HomeController implements MessageObserver, Observer {
         ImageView obrazek;
         log.debug("Klíč, podle kterého hledat: " + key);
         for (Map.Entry<String, ImageView> entry : imageViewMap.entrySet()) {
+            log.debug("Jsem ve foru");
             String klic = entry.getKey();
+            log.debug("Získán imageview " + klic + ", probíhá porovnání");
             if(klic.contains(key)) {
+                log.debug("Je to stejný");
                 obrazek = entry.getValue();
                 return obrazek;
             }
+            log.debug("neni to stejný, jedu dál");
         }
         return null;
     }
@@ -439,26 +460,26 @@ public class HomeController implements MessageObserver, Observer {
         int aktualniToken = -1;
 
         for(Player aktualniHrac : aktualniHraci) {
+            log.debug("TOKEN PŘED ÚPRAVOU: " + aktualniToken);
             barvaAktualniHrac = aktualniDeska.getPlayerColour(aktualniHrac.getName());
+            aktualniToken = -1;
+            log.debug("TOKEN PO ÚPRAVĚ: " + aktualniToken);
             for (Token token : aktualniHrac.getTokens()) {
                 aktualniToken++;
+                log.debug("TOKEN PO ZVÝŠENÍ: " + aktualniToken);
                 poziceTokenu = token.getPosition();
-                log.debug("Pozice tokenu: " + poziceTokenu);
-                if(poziceTokenu == 0) {
-                    log.debug("Token je nula, nic tedy nepřesouvám");
-                    continue;
-                }
-                log.debug("Token není nula");
+                if(poziceTokenu == 0) continue;
                 figurka = getFigurka(barvaAktualniHrac, aktualniToken);
+                if(figurka == null) continue;
                 log.debug("Získaná figurka: " + figurka.getId());
                 log.debug("Aktuální token: " + chosenToken);
                 poziceNaDesce = getImageView(barvaAktualniHrac, poziceTokenu);
+                if(poziceNaDesce == null) continue;
 
-                figurka.setLayoutX(poziceNaDesce.getLayoutX());
-                figurka.setLayoutY(poziceNaDesce.getLayoutY());
+                figurka.setLayoutX(poziceNaDesce.getLayoutX() + poziceNaDesce.getFitWidth() / 4);
+                figurka.setLayoutY(poziceNaDesce.getLayoutY() + poziceNaDesce.getFitHeight() / 4);
                 chatTextArea.appendText("\nByla přesunuta figurka " + figurka.getId() + "\n");
             }
-            aktualniToken = -1;
         }
     }
 
