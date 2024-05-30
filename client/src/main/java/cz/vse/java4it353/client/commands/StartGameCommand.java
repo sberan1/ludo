@@ -16,13 +16,14 @@ public class StartGameCommand extends Observable implements ICommand {
     }
     @Override
     public String execute(String data) throws Exception {
+        log.info("Započal StartGameCommand");
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(data);
         Board board = objectMapper.treeToValue(jsonNode, Board.class);
 
-        log.info("Vracím board a tím spouštím hru");
         setChanged();
         notifyObservers(board);
+        log.info("Končí StartGameCommand");
         return null;
     }
 }

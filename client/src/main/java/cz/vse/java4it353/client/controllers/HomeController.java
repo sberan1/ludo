@@ -153,23 +153,23 @@ public class HomeController implements MessageObserver, Observer {
     @FXML
     private ImageView c30xl20xm10xz40;
     @FXML
-    private ImageView c31xl21xm11xz1;
+    private ImageView c31xl21xm11xz01;
     @FXML
-    private ImageView c32xl22xm12xz12;
+    private ImageView c32xl22xm12xz02;
     @FXML
-    private ImageView c33xl23xm13xz3;
+    private ImageView c33xl23xm13xz03;
     @FXML
-    private ImageView c34xl24xm14xz4;
+    private ImageView c34xl24xm14xz04;
     @FXML
-    private ImageView c35xl25xm15xz5;
+    private ImageView c35xl25xm15xz05;
     @FXML
-    private ImageView c36xl26xm16xz6;
+    private ImageView c36xl26xm16xz06;
     @FXML
-    private ImageView c37xl27xm17xz7;
+    private ImageView c37xl27xm17xz07;
     @FXML
-    private ImageView c38xl28xm18xz8;
+    private ImageView c38xl28xm18xz08;
     @FXML
-    private ImageView c39xl29xm19xz9;
+    private ImageView c39xl29xm19xz09;
     @FXML
     private ImageView c40xl30xm20xz10;
     @FXML
@@ -259,15 +259,15 @@ public class HomeController implements MessageObserver, Observer {
         imageViewMap.put("c28xl18xm8xz38", c28xl18xm8xz38);
         imageViewMap.put("c29xl19xm9xz39", c29xl19xm9xz39);
         imageViewMap.put("c30xl20xm10xz40", c30xl20xm10xz40);
-        imageViewMap.put("c31xl21xm11xz1", c31xl21xm11xz1);
-        imageViewMap.put("c32xl22xm12xz12", c32xl22xm12xz12);
-        imageViewMap.put("c33xl23xm13xz3", c33xl23xm13xz3);
-        imageViewMap.put("c34xl24xm14xz4", c34xl24xm14xz4);
-        imageViewMap.put("c35xl25xm15xz5", c35xl25xm15xz5);
-        imageViewMap.put("c36xl26xm16xz6", c36xl26xm16xz6);
-        imageViewMap.put("c37xl27xm17xz7", c37xl27xm17xz7);
-        imageViewMap.put("c38xl28xm18xz8", c38xl28xm18xz8);
-        imageViewMap.put("c39xl29xm19xz9", c39xl29xm19xz9);
+        imageViewMap.put("c31xl21xm11xz01", c31xl21xm11xz01);
+        imageViewMap.put("c32xl22xm12xz02", c32xl22xm12xz02);
+        imageViewMap.put("c33xl23xm13xz03", c33xl23xm13xz03);
+        imageViewMap.put("c34xl24xm14xz04", c34xl24xm14xz04);
+        imageViewMap.put("c35xl25xm15xz05", c35xl25xm15xz05);
+        imageViewMap.put("c36xl26xm16xz06", c36xl26xm16xz06);
+        imageViewMap.put("c37xl27xm17xz07", c37xl27xm17xz07);
+        imageViewMap.put("c38xl28xm18xz08", c38xl28xm18xz08);
+        imageViewMap.put("c39xl29xm19xz09", c39xl29xm19xz09);
         imageViewMap.put("c40xl30xm20xz10", c40xl30xm20xz10);
         imageViewMap.put("c41", c41);
         imageViewMap.put("c42", c42);
@@ -326,7 +326,7 @@ public class HomeController implements MessageObserver, Observer {
         nasazeniPozice.put("C", c1xl31xm21xz11);
         nasazeniPozice.put("L", c11xl1xm31xz21);
         nasazeniPozice.put("M", c21xl11xm1xz31);
-        nasazeniPozice.put("Z", c31xl21xm11xz1);
+        nasazeniPozice.put("Z", c31xl21xm11xz01);
 
         List<Pair<Double, Double>> cervenyHome = Arrays.asList(
                 new Pair<>(figurka1C.getLayoutX(), figurka1C.getLayoutY()),
@@ -456,6 +456,8 @@ public class HomeController implements MessageObserver, Observer {
         return null;
     }
     private ImageView getImageView(String colour, int position) {
+        ImageView obrazek;
+        String key;
         if(colour.equalsIgnoreCase("red")) {
             colour = "c";
         }
@@ -468,12 +470,22 @@ public class HomeController implements MessageObserver, Observer {
         else if(colour.equalsIgnoreCase("green")) {
             colour = "z";
         }
-        String key = colour.toLowerCase().charAt(0) + Integer.toString(position) + "x";;
-        if(position > 40) {
-            key = colour.toLowerCase().charAt(0) + Integer.toString(position);
+
+        log.debug("Zjišťuji, jaký bude klíč na základě barvy " + colour + " a pozice " + position);
+        if(colour.equalsIgnoreCase("z") && position < 10) {
+            log.info("Barva je zelená a zároveň její pozice je nižší než 10");
+            key = colour + "0" + position;
+        }
+        else if(position > 40 || (colour.equalsIgnoreCase("z") && position < 40)) {
+            log.info("Barva není zelená, pozice je vyšší než 40");
+            key = colour + position;
             // KVŮLI DOMEČKŮM, NEEXISTUJE POZICE C41X
         }
-        ImageView obrazek;
+        else {
+            log.info("Barva není zelená a zároveň její pozice není nižší než 10 a zároveň není vyšší než 40");
+            key = colour + position + "x";
+        }
+        log.debug("Klíč: " + key);
         for (Map.Entry<String, ImageView> entry : imageViewMap.entrySet()) {
             String klic = entry.getKey();
             if(klic.contains(key)) {
@@ -508,7 +520,7 @@ public class HomeController implements MessageObserver, Observer {
         for(Player aktualniHrac : aktualniHraci) {
             aktualniToken = -1;
             for (Token token : aktualniHrac.getTokens()) {
-                barvaAktualniHrac = aktualniDeska.getPlayerColour(aktualniHrac.getName()); // BARVA MUSÍ BEJT JEŠTĚ NĚKDE
+                barvaAktualniHrac = aktualniDeska.getPlayerColour(aktualniHrac.getName());
                 aktualniToken++;
                 poziceTokenu = token.getPosition();
                 figurka = getFigurka(barvaAktualniHrac, aktualniToken);

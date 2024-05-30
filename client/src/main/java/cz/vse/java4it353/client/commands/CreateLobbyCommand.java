@@ -18,7 +18,7 @@ public class CreateLobbyCommand extends Observable implements ICommand {
     }
     @Override
     public String execute(String data) throws Exception {
-        log.info("Teď jsem v CreateLobbyCommand");
+        log.info("Započal CreateLobbyCommand");
         log.debug(data);
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(data);
@@ -26,6 +26,7 @@ public class CreateLobbyCommand extends Observable implements ICommand {
 
         setChanged();
         notifyObservers(lobby);
+        log.info("Končí CreateLobbyCommand");
         return null;
     }
 }

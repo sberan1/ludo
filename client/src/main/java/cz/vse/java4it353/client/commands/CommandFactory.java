@@ -10,13 +10,6 @@ public class CommandFactory {
     private Map<String, ICommand> commandMap = new HashMap<>();
     private final Logger logger = LoggerFactory.getLogger(CommandFactory.class);
     public CommandFactory(Observer o) {
-        /*commandMap.put("L", new LoginCommand());
-        commandMap.put("C", new CreateLobbyCommand());
-        commandMap.put("J", new JoinLobbyCommand());
-        commandMap.put("S", new StartGameCommand());
-        commandMap.put("CC", new ChooseColorCommand());
-        commandMap.put("R", new RollDiceCommand());
-        commandMap.put("M", new MoveTokenCommand());*/
         commandMap.put("L", new SyncLobbiesCommand(o));
         commandMap.put("J", new CreateLobbyCommand(o));
         commandMap.put("B", new StartGameCommand(o));

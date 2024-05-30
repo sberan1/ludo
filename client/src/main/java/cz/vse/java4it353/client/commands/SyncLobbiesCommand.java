@@ -15,11 +15,13 @@ public class SyncLobbiesCommand extends Observable implements ICommand {
     }
     @Override
     public String execute(String data) throws Exception {
+        log.info("Započal SyncLobbiesCommand");
         List<Lobby> lobbies = new ArrayList<>();
 
         if(data.equalsIgnoreCase("{}")) {
             log.info("Data prázdná, vyskakuji ze SyncLobbiesCommand");
             notifyObservers(lobbies);
+            log.info("Končí SyncLobbiesCommand");
             return null;
         }
 
@@ -35,6 +37,7 @@ public class SyncLobbiesCommand extends Observable implements ICommand {
 
         setChanged();
         notifyObservers(lobbies);
+        log.info("Končí SyncLobbiesCommand");
         return null;
     }
 }

@@ -19,18 +19,13 @@ public class ChooseTokenCommand extends Observable implements ICommand {
     }
     @Override
     public String execute(String data) throws Exception {
-        //ObjectMapper objectMapper = new ObjectMapper();
-        //JsonNode jsonNode = objectMapper.readTree(data);
-        //Lobby lobby = objectMapper.treeToValue(jsonNode, Lobby.class);
-
-        //setChanged();
-        //notifyObservers(lobby);
-
+        log.info("Započal ChooseTokenCommand");
         ObjectMapper objectMapper = new ObjectMapper();
         Map<Integer, MovableToken> tokens = objectMapper.readValue(data,
                 objectMapper.getTypeFactory().constructMapType(Map.class, Integer.class, MovableToken.class));
         setChanged();
         notifyObservers(tokens);
+        log.info("Končí ChooseTokenCommand");
         return null;
     }
 }
