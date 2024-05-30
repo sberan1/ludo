@@ -60,27 +60,16 @@ public class Player {
         return tokens;
     }
     public void moveToken(int tokenIndex, int steps, Lobby lobby) throws ForbiddenMoveException {
-        int newPosition = 0;
-        if (tokenIndex == 0){
-            if (steps == 6){
-                newPosition = tokens[tokenIndex].move(1);
-                log.info("Player " + name + " rolled 6, token " + tokenIndex + " put on board");
-            }
-            else {
-                log.info("Player didn't roll 6, token " + tokenIndex + " couldn't be put on board");
-            }
-        }
-        else {
-            if (canMove(tokens[tokenIndex], steps)){
-                newPosition = tokens[tokenIndex].move(steps);
-                log.info("Player " + name + " moved token " + tokenIndex + " to position " + newPosition);
+            Token token = tokens[tokenIndex];
+            int newPosition = 0;
 
-            }
-            else{
-                log.info("Player " + name + " couldn't move token " + tokenIndex + " to position " + newPosition + " because he already has a token there or because it overflows the board");
-                throw new ForbiddenMoveException("Player " + name + " couldn't move token " + tokenIndex + " to position " + newPosition + " because he already has a token there or because it overflows the board");
-            }
-        }
+          if (token.getPosition() != 0 && canMove(token, steps)) {
+                newPosition = token.move(steps);
+                log.info("Player " + name + " moved token " + tokenIndex + " to position " + newPosition);
+          } else {
+                log.info("Player " + name + " couldn't move token " + tokenIndex);
+                throw new ForbiddenMoveException("Player " + name + " couldn't move token " + tokenIndex);
+          }
 
         Map <ColorEnum, Player> playerMap = lobby.getBoardState().getPlayerMap();
         ColorEnum colorPlayer = null;
@@ -108,6 +97,11 @@ public class Player {
 
     private boolean canMove(Token token, int diceValue) {
         if (token.getPosition() == 0) {
+            for (Token t : tokens) {
+                if (t.getPosition() == 1) {
+                    return false;
+                }
+            }
             return diceValue == 6;
         } else {
             int newPosition = token.getPosition() + diceValue;
@@ -118,9 +112,6 @@ public class Player {
             }
 
             for (Token t : tokens) {
-                if(t.equals(token)){
-                    continue;
-                }
                 if (t.getPosition() == newPosition) {
                     return false;
                 }
@@ -130,11 +121,14 @@ public class Player {
         }
     }
 
-    private void checkCollision(int otherPlayerOffset, Player otherPlayer, int newPosition, int playerOffset) {
+    protected void checkCollision(int otherPlayerOffset, Player otherPlayer, int newPosition, int playerOffset) {
+
         if (otherPlayer != this && otherPlayer != null) {
             for (Token otherToken : otherPlayer.getTokens()) {
-                if ((otherToken.getPosition() + otherPlayerOffset) % Board.BOARD_SIZE - 4
-                        == (newPosition + playerOffset) % Board.BOARD_SIZE - 4
+                log.debug( " Absolute pozice druheho " + (otherToken.getPosition() + otherPlayerOffset) % (Board.BOARD_SIZE - 4));
+                log.debug( " Absolute pozice prveho " + (newPosition + playerOffset) % (Board.BOARD_SIZE - 4));
+                if (((otherToken.getPosition() + otherPlayerOffset) % (Board.BOARD_SIZE - 4)
+                        == (newPosition + playerOffset) % (Board.BOARD_SIZE - 4))
                         && otherToken.getPosition() != 0
                         && otherToken.getPosition() < Board.BOARD_SIZE - 4) {
                     otherToken.setPosition(0);
