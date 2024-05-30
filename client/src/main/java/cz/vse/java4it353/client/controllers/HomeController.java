@@ -6,10 +6,9 @@ import cz.vse.java4it353.client.MessageObserver;
 import cz.vse.java4it353.client.commands.CommandFactory;
 import cz.vse.java4it353.client.commands.ICommand;
 import cz.vse.java4it353.client.enums.ColorEnum;
-import cz.vse.java4it353.client.model.Board;
-import cz.vse.java4it353.client.model.Lobby;
-import cz.vse.java4it353.client.model.Player;
-import cz.vse.java4it353.client.model.Token;
+import cz.vse.java4it353.client.model.*;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -25,6 +24,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
+import javafx.util.Duration;
 import javafx.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -532,6 +532,7 @@ public class HomeController implements MessageObserver, Observer {
                         Pair<Double, Double> par = pary.get(numOfFigurkaMinusOne);
                         figurka.setLayoutX(par.getKey());
                         figurka.setLayoutY(par.getValue());
+                        stopBlinkAnimation(figurka);
                     }
                     continue;
                 }
@@ -540,6 +541,7 @@ public class HomeController implements MessageObserver, Observer {
 
                 figurka.setLayoutX(poziceNaDesce.getLayoutX() + poziceNaDesce.getFitWidth() / 4);
                 figurka.setLayoutY(poziceNaDesce.getLayoutY() + poziceNaDesce.getFitHeight() / 4);
+                stopBlinkAnimation(figurka);
             }
         }
     }
@@ -632,6 +634,41 @@ public class HomeController implements MessageObserver, Observer {
             hracHodilNaKostce = aktualniLobby.getBoardState().getDiceValue();
 
             moveTokens();
+        }
+        else if (arg instanceof Map) {
+            Map<Integer, MovableToken> movableTokens = (Map<Integer, MovableToken>) arg;
+            flashTokens(movableTokens);
+        }
+    }
+    private Map<ImageView, Timeline> animationMap = new HashMap<>(); // Mapa pro uložení animací
+    private void flashTokens(Map<Integer, MovableToken> movableTokens) {
+        Player hracNaTahu = aktualniLobby.getBoardState().getPlayerOnTurn();
+        String barvaHraceNaTahu = aktualniLobby.getBoardState().getPlayerColour(hracNaTahu.getName());
+
+        movableTokens.forEach((key, token) -> {
+            ImageView figurka = getFigurka(barvaHraceNaTahu, key);
+            if (figurka != null) {
+                Timeline timeline = createBlinkAnimation(figurka);
+                animationMap.put(figurka, timeline); // Uložení animaci do mapy
+                timeline.play();
+            }
+        });
+    }
+    private Timeline createBlinkAnimation(ImageView figurka) {
+        Timeline blinkTimeline = new Timeline(
+                new KeyFrame(Duration.seconds(0), new KeyValue(figurka.opacityProperty(), 1.0)),
+                new KeyFrame(Duration.seconds(0.5), new KeyValue(figurka.opacityProperty(), 0.0)),
+                new KeyFrame(Duration.seconds(1), new KeyValue(figurka.opacityProperty(), 1.0))
+        );
+        blinkTimeline.setCycleCount(Timeline.INDEFINITE); // Opakuje se nekonečně
+        return blinkTimeline;
+    }
+    private void stopBlinkAnimation(ImageView figurka) {
+        figurka.setOpacity(1.0); // Nastaví figurku na plnou viditelnost
+        Timeline timeline = animationMap.get(figurka); // Získá animaci z mapy
+        if (timeline != null) {
+            timeline.stop(); // Zastaví animaci
+            animationMap.remove(figurka); // Odstraní animaci z mapy
         }
     }
 }

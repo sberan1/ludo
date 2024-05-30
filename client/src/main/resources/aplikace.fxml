@@ -12,6 +12,7 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
 <VBox prefHeight="980.0" prefWidth="703.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="cz.vse.java4it353.client.controllers.HomeController">
   <children>
@@ -206,10 +207,26 @@
             <ImageView fx:id="z43" fitHeight="36.0" fitWidth="37.0" layoutX="448.0" layoutY="332.0" pickOnBounds="true" preserveRatio="true" />
             <ImageView fx:id="z42" fitHeight="36.0" fitWidth="37.0" layoutX="508.0" layoutY="332.0" pickOnBounds="true" preserveRatio="true" />
             <ImageView fx:id="z41" fitHeight="36.0" fitWidth="37.0" layoutX="567.0" layoutY="332.0" pickOnBounds="true" preserveRatio="true" />
-            <Label fx:id="labelRedPlayer" layoutX="61.0" layoutY="469.0" text="JMÉNO ČERVENÉHO HRÁČE" textAlignment="CENTER" />
-            <Label fx:id="labelGreenPlayer" layoutX="497.0" layoutY="469.0" text="JMÉNO ZELENÉHO HRÁČE" textAlignment="CENTER" />
-            <Label fx:id="labelYellowPlayer" layoutX="61.0" layoutY="32.0" text="JMÉNO ŽLUTÉHO HRÁČE" textAlignment="CENTER" />
-            <Label fx:id="labelBluePlayer" layoutX="496.0" layoutY="32.0" text="JMÉNO MODRÉHO HRÁČE" textAlignment="CENTER" />
+            <Label fx:id="labelRedPlayer" layoutX="28.0" layoutY="459.0" text="JMÉNO ČERVENÉHO HRÁČE" textAlignment="CENTER">
+               <font>
+                  <Font name="System Bold" size="17.0" />
+               </font>
+            </Label>
+            <Label fx:id="labelGreenPlayer" layoutX="464.0" layoutY="459.0" text="JMÉNO ZELENÉHO HRÁČE" textAlignment="CENTER">
+               <font>
+                  <Font name="System Bold" size="17.0" />
+               </font>
+            </Label>
+            <Label fx:id="labelYellowPlayer" layoutX="28.0" layoutY="22.0" text="JMÉNO ŽLUTÉHO HRÁČE" textAlignment="CENTER">
+               <font>
+                  <Font name="System Bold" size="17.0" />
+               </font>
+            </Label>
+            <Label fx:id="labelBluePlayer" layoutX="463.0" layoutY="22.0" text="JMÉNO MODRÉHO HRÁČE" textAlignment="CENTER">
+               <font>
+                  <Font name="System Bold" size="17.0" />
+               </font>
+            </Label>
          </children>
     </AnchorPane>
   </children>
