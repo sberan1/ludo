@@ -342,15 +342,18 @@ public class HomeController implements MessageObserver, Observer {
         String zvolenaFigurka = selectedFigurka.getId();
         chosenToken = Integer.parseInt(zvolenaFigurka.substring(7, 8)) - 1; // "figurka1C" -> "1" -> token 0
 
+        chatTextArea.appendText("\nKliknul jsem na figurku " + zvolenaFigurka);
+
         client.send("M " + chosenToken);
     }
     public void hodKostkou(ActionEvent actionEvent) {
         client.send("R");
     }
     private ImageView getFigurka(String colour, int token) {
-        log.debug("Poslal jsem informace o barvě " + colour + "s tokenem " + token);
+        log.debug("Poslal jsem informace o barvě " + colour + " s tokenem " + token);
         switch (colour.toUpperCase()) {
             case "RED":
+                log.info("Vybírám z barvy ČERVENÁ");
                 switch (token) {
                     case 0: return figurka1C;
                     case 1: return figurka2C;
@@ -359,6 +362,7 @@ public class HomeController implements MessageObserver, Observer {
                 }
                 break;
             case "YELLOW":
+                log.info("Vybírám z barvy ŽLUTÁ");
                 switch (token) {
                     case 0: return figurka1L;
                     case 1: return figurka2L;
@@ -367,6 +371,7 @@ public class HomeController implements MessageObserver, Observer {
                 }
                 break;
             case "BLUE":
+                log.info("Vybírám z barvy MODRÁ");
                 switch (token) {
                     case 0: return figurka1M;
                     case 1: return figurka2M;
@@ -375,6 +380,7 @@ public class HomeController implements MessageObserver, Observer {
                 }
                 break;
             case "GREEN":
+                log.info("Vybírám z barvy ZELENÁ");
                 switch (token) {
                     case 0: return figurka1Z;
                     case 1: return figurka2Z;
@@ -383,6 +389,7 @@ public class HomeController implements MessageObserver, Observer {
                 }
                 break;
         }
+        log.debug("NEBYLA ZVOLENA ŽÁDNÁ FIGURKA");
         return null;
     }
     private ImageView getImageView(String colour, int position) {
@@ -449,8 +456,9 @@ public class HomeController implements MessageObserver, Observer {
 
                 figurka.setLayoutX(poziceNaDesce.getLayoutX());
                 figurka.setLayoutY(poziceNaDesce.getLayoutY());
+                chatTextArea.appendText("\nByla přesunuta figurka " + figurka.getId() + "\n");
             }
-            aktualniToken = 0;
+            aktualniToken = -1;
         }
     }
 
