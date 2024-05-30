@@ -468,7 +468,11 @@ public class HomeController implements MessageObserver, Observer {
         else if(colour.equalsIgnoreCase("green")) {
             colour = "z";
         }
-        String key = colour.toLowerCase().charAt(0) + Integer.toString(position) + "x"; // PROBLÉM SE ZELENOU BARVOU, Z1X NEEXISTUJE
+        String key = colour.toLowerCase().charAt(0) + Integer.toString(position) + "x";;
+        if(position > 40) {
+            key = colour.toLowerCase().charAt(0) + Integer.toString(position);
+            // KVŮLI DOMEČKŮM, NEEXISTUJE POZICE C41X
+        }
         ImageView obrazek;
         for (Map.Entry<String, ImageView> entry : imageViewMap.entrySet()) {
             String klic = entry.getKey();
@@ -499,14 +503,13 @@ public class HomeController implements MessageObserver, Observer {
         ImageView poziceNaDesce;
         int poziceTokenu = 0;
         int aktualniToken = -1;
-        List<Pair<Double, Double>> pary = new ArrayList<>();
+        List<Pair<Double, Double>> pary;
 
         for(Player aktualniHrac : aktualniHraci) {
             aktualniToken = -1;
             for (Token token : aktualniHrac.getTokens()) {
                 barvaAktualniHrac = aktualniDeska.getPlayerColour(aktualniHrac.getName()); // BARVA MUSÍ BEJT JEŠTĚ NĚKDE
                 aktualniToken++;
-                log.debug("TOKEN PO ZVÝŠENÍ: " + aktualniToken);
                 poziceTokenu = token.getPosition();
                 figurka = getFigurka(barvaAktualniHrac, aktualniToken);
                 if(figurka == null) continue;
@@ -523,18 +526,12 @@ public class HomeController implements MessageObserver, Observer {
                     else if(barvaAktualniHrac.equalsIgnoreCase("green")) {
                         barvaAktualniHrac = "z";
                     }
-                    log.debug("Pozice tokenu je 0, barva hráče je " + barvaAktualniHrac);
                     pary = startPositions.get(barvaAktualniHrac);
-                    log.info("Získal jsem páry startujících pozicí barvy" + barvaAktualniHrac);
-                    if(token.getPosition() == 0) {
-                        log.info("Hodnota tokenu je 0");
+                    if(token.getPosition() == 0) { // Pokud má být figurka na startovní pozici
                         int numOfFigurkaMinusOne = Integer.parseInt(figurka.getId().substring(7, 8)) - 1;
-                        log.debug("Číslo figurky, na které jsem klikl, je " + (numOfFigurkaMinusOne + 1) + ", ale byla snížena na " + numOfFigurkaMinusOne);
                         Pair<Double, Double> par = pary.get(numOfFigurkaMinusOne);
-                        log.debug("Byl získán pár, hodnota x: " + par.getKey() + ", hodnota y: " + par.getValue());
                         figurka.setLayoutX(par.getKey());
                         figurka.setLayoutY(par.getValue());
-                        log.debug("Layout figurky nastaven");
                     }
                     continue;
                 }
