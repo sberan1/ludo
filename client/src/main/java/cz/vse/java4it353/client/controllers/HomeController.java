@@ -10,10 +10,14 @@ import cz.vse.java4it353.client.model.Board;
 import cz.vse.java4it353.client.model.Lobby;
 import cz.vse.java4it353.client.model.Player;
 import cz.vse.java4it353.client.model.Token;
+import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -32,6 +36,14 @@ import java.util.stream.Collectors;
 
 public class HomeController implements MessageObserver, Observer {
     private static final Logger log = LoggerFactory.getLogger(HomeController.class);
+    @FXML
+    public Label labelRedPlayer;
+    @FXML
+    public Label labelYellowPlayer;
+    @FXML
+    public Label labelBluePlayer;
+    @FXML
+    public Label labelGreenPlayer;
     private ImageView selectedFigurka = null;
     private Map<String, ImageView> nasazeniPozice = new HashMap<>();
     private Map<String, List<Pair<Double, Double>>> startPositions = new HashMap<>();
@@ -345,6 +357,18 @@ public class HomeController implements MessageObserver, Observer {
         startPositions.put("L", zlutyHome);
         startPositions.put("M", modryHome);
         startPositions.put("Z", zelenyHome);
+        diceImages = new ArrayList<>();
+        Image obrazek;
+        String adresa;
+        for (int i = 1; i <= 6; i++) {
+            adresa = "/kostka/" + i + ".png";
+            log.debug("Pokus o nahrání obrázku, adresa: " + adresa);
+
+            obrazek = new Image(getClass().getResourceAsStream(adresa));
+            log.debug("Název obrázku: " + obrazek.getUrl());
+            diceImages.add(obrazek);
+
+        }
         firstStart();
     }
 
@@ -359,12 +383,34 @@ public class HomeController implements MessageObserver, Observer {
 
         chosenToken = Integer.parseInt(zvolenaFigurka.substring(7, 8)) - 1; // "figurka1C" -> "1" -> token 0
 
-        chatTextArea.appendText("\nKliknul jsem na figurku " + zvolenaFigurka);
-
         client.send("M " + chosenToken);
+        chatTextArea.appendText("\nServer: Hráč " + hracNaTahu + " právě odehrál svůj tah!");
     }
+    private List<Image> diceImages;
+    private Random random = new Random();
+    private boolean rolledDice = false;
     public void hodKostkou(ActionEvent actionEvent) {
-        client.send("R");
+        log.info("Byla spuštěna metoda hoď kostkou");
+        Task<Void> diceRollTask = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                int rolls = 5 + random.nextInt(6); // Roll between 5 and 10 times
+                for (int i = 0; i < rolls; i++) {
+                    Platform.runLater(() -> kostkaImageView.setImage(diceImages.get(random.nextInt(6))));
+                    Thread.sleep(100); // Wait for 100 milliseconds between each roll
+                }
+
+                // Send the roll command to the server
+                client.send("R");
+
+                return null;
+            }
+        };
+
+        // Start the dice roll task in a new thread
+        log.info("Spouštím vlákno pro roll kostkou");
+        new Thread(diceRollTask).start();
+
     }
     private ImageView getFigurka(String colour, int token) {
         log.debug("Poslal jsem informace o barvě " + colour + " s tokenem " + token);
@@ -478,7 +524,6 @@ public class HomeController implements MessageObserver, Observer {
 
                 figurka.setLayoutX(poziceNaDesce.getLayoutX() + poziceNaDesce.getFitWidth() / 4);
                 figurka.setLayoutY(poziceNaDesce.getLayoutY() + poziceNaDesce.getFitHeight() / 4);
-                chatTextArea.appendText("\nByla přesunuta figurka " + figurka.getId() + "\n");
             }
         }
     }
@@ -486,31 +531,15 @@ public class HomeController implements MessageObserver, Observer {
     public void odeslat(ActionEvent actionEvent) throws IOException {
         /*String message = vstupTextField.getText();
         String command = "H " + message;
-        Client client = Client.getInstance();
         client.send(command);
         vstupTextField.clear();*/
-        int i = 0;
-        log.info("Vypíšu informace o lobby");
-        log.debug("Název lobby: " + aktualniLobby.getName());
-        for(Player player : aktualniLobby.getPlayers()) {
-            if(player != null) {
-                log.debug("Jméno hráče: " + player.getName());
-                i = 0;
-                for(Token token : player.getTokens()) {
-                    log.debug("Token hráče: " + i + "-" + token.getPosition());
-                    i++;
-                }
-            }
-        }
-        log.debug("Kolik je dice value: " + aktualniLobby.getBoardState().getDiceValue());
-        log.debug("Hráč na řadě: " + aktualniLobby.getBoardState().getPlayerOnTurn().getName());
     }
     private String response;
     @FXML
     private void firstStart() {
         int i = 1;
         StringBuilder sb = new StringBuilder();
-        sb.append("Ahoj! Zde jsou informace o lobby, které se musí zobrazit všem hráčům!");
+        sb.append("Zde jsou informace o lobby, které se musí zobrazit všem hráčům!");
         sb.append("\nNázev lobby: " + aktualniLobby.getName());
         for (Player player : aktualniLobby.getPlayers()) {
             if(player != null) {
@@ -519,9 +548,27 @@ public class HomeController implements MessageObserver, Observer {
                 i++;
             }
         }
-        sb.append("\nTento klient je na tahu: " + (aktualniLobby.getBoardState().getPlayerOnTurn().getName().equals(Main.getPlayerName()) ? true : false));
-        sb.append("\nPlayerOnTurn: " + aktualniLobby.getBoardState().getPlayerOnTurn().getName());
+        sb.append("\nPrvní hráč na tahu je " + aktualniLobby.getBoardState().getPlayerOnTurn().getName());
         chatTextArea.setText(sb.toString());
+
+        String name;
+        String colour;
+        List<Player> aktualniHraci = aktualniLobby.getBoardState().getPlayerMap().values().stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        labelRedPlayer.setText("");
+        labelYellowPlayer.setText("");
+        labelBluePlayer.setText("");
+        labelGreenPlayer.setText("");
+        for(Player hrac : aktualniHraci) {
+            name = hrac.getName();
+            colour = aktualniLobby.getBoardState().getPlayerColour(name);
+            if(colour.equalsIgnoreCase("red")) labelRedPlayer.setText(name);
+            else if(colour.equalsIgnoreCase("yellow")) labelYellowPlayer.setText(name);
+            else if(colour.equalsIgnoreCase("blue")) labelBluePlayer.setText(name);
+            else if(colour.equalsIgnoreCase("green")) labelGreenPlayer.setText(name);
+        }
     }
 
     @Override
@@ -552,13 +599,21 @@ public class HomeController implements MessageObserver, Observer {
     }
 
     private Lobby placeHolderLobby = new Lobby();
+    private String hracNaTahu;
+    private int hracHodilNaKostce = 0;
     @Override
     public void update(Observable o, Object arg) {
         if(arg instanceof Board) {
             Board nova = (Board) arg;
 
             placeHolderLobby = aktualniLobby;
+            hracNaTahu = aktualniLobby.getBoardState().getPlayerOnTurn().getName();
+            if(hracNaTahu.equals(Main.getPlayerName())) {
+                log.info("Hráč je na tahu, nastavuji tedy obrázek");
+                Platform.runLater(() -> kostkaImageView.setImage(diceImages.get(hracHodilNaKostce - 1)));
+            }
             aktualniLobby.setBoardState(nova);
+            hracHodilNaKostce = aktualniLobby.getBoardState().getDiceValue();
 
             moveTokens();
         }
