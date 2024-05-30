@@ -55,40 +55,7 @@ public class Lobby {
 
     public void setBoardState(Board boardState) {
         log.debug("Zachycené informace o desce, začíná výpis");
-
-        int y = 0;
-        Map<ColorEnum, Player> test = boardState.getPlayerMap();
-        List<Player> hraci = new ArrayList<>();
-        for (Player player : test.values()) {
-            if(player != null) {
-                log.debug("Název hráče: " + player.getName());
-                log.debug("Jeho tokeny:");
-                y = 0;
-                for(Token token : player.getTokens()) {
-                    log.debug("" + y + "-" + token.getPosition());
-                    y++;
-                }
-            }
-        }
-        log.error("Deska před úpravou: " + this.boardState);
         this.boardState = boardState;
-
-        log.error("Deska po úpravě: " + this.boardState);
-
-        y = 0;
-        test = this.boardState.getPlayerMap();
-        hraci = new ArrayList<>();
-        for (Player player : test.values()) {
-            if(player != null) {
-                log.debug("Název hráče: " + player.getName());
-                log.debug("Jeho tokeny:");
-                y = 0;
-                for(Token token : player.getTokens()) {
-                    log.debug("" + y + "-" + token.getPosition());
-                    y++;
-                }
-            }
-        }
     }
 
     public boolean isStarted() {
