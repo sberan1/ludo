@@ -35,8 +35,8 @@ public class Game {
             instance = new Game();
             offset.put(ColorEnum.RED, 0);
             offset.put(ColorEnum.YELLOW, 10);
-            offset.put(ColorEnum.GREEN, 20);
-            offset.put(ColorEnum.BLUE, 30);
+            offset.put(ColorEnum.GREEN, 30);
+            offset.put(ColorEnum.BLUE, 20);
         }
         return instance;
     }
