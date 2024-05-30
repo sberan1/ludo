@@ -21,6 +21,7 @@ public class Client implements IConnectionLostHandler {
     private Thread listenerThread;
     private static Client instance = null;
     private final int retryDelay = 5000; // 5000 ms = 5 s
+    private boolean isConnectionLost;
 
     private Client() throws IOException {
         startConnection();
@@ -33,6 +34,7 @@ public class Client implements IConnectionLostHandler {
         return instance;
     }
     private void startConnection() throws IOException {
+        isConnectionLost = false;
         clientSocket = new Socket("127.0.0.1", 12345);
         pw = new PrintWriter(clientSocket.getOutputStream(), true);
         in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -84,7 +86,8 @@ public class Client implements IConnectionLostHandler {
     @Override
     public void onConnectionLost() {
         logger.warn("Connection lost. Attempting to reconnect...");
-        while (true) {
+        isConnectionLost = true;
+        while (isConnectionLost) {
             try {
                 connect();
                 logger.info("Reconnected to the server.");

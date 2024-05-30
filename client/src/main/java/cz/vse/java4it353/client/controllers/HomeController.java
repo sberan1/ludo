@@ -18,12 +18,14 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Pane;
 import javafx.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class HomeController implements MessageObserver, Observer {
@@ -260,6 +262,26 @@ public class HomeController implements MessageObserver, Observer {
         imageViewMap.put("z42", z42);
         imageViewMap.put("z41", z41);
 
+        figurka1C.toFront();
+        figurka2C.toFront();
+        figurka3C.toFront();
+        figurka4C.toFront();
+
+        figurka1L.toFront();
+        figurka2L.toFront();
+        figurka3L.toFront();
+        figurka4L.toFront();
+
+        figurka1M.toFront();
+        figurka2M.toFront();
+        figurka3M.toFront();
+        figurka4M.toFront();
+
+        figurka1Z.toFront();
+        figurka2Z.toFront();
+        figurka3Z.toFront();
+        figurka4Z.toFront();
+
         figurka1C.setOnMouseClicked(this::handleFigurkaClick);
         figurka2C.setOnMouseClicked(this::handleFigurkaClick);
         figurka3C.setOnMouseClicked(this::handleFigurkaClick);
@@ -314,18 +336,19 @@ public class HomeController implements MessageObserver, Observer {
         firstStart();
     }
 
-
+    int chosenToken = 0;
     private void handleFigurkaClick(MouseEvent event) {
         selectedFigurka = (ImageView) event.getSource();
         String zvolenaFigurka = selectedFigurka.getId();
-        int token = Integer.parseInt(zvolenaFigurka.substring(7, 8)) - 1; // "figurka1C" -> "1" -> token 0
+        chosenToken = Integer.parseInt(zvolenaFigurka.substring(7, 8)) - 1; // "figurka1C" -> "1" -> token 0
 
-        client.send("M " + token);
+        client.send("M " + chosenToken);
     }
     public void hodKostkou(ActionEvent actionEvent) {
         client.send("R");
     }
     private ImageView getFigurka(String colour, int token) {
+        log.debug("Poslal jsem informace o barvě " + colour + "s tokenem " + token);
         switch (colour.toUpperCase()) {
             case "RED":
                 switch (token) {
@@ -363,34 +386,24 @@ public class HomeController implements MessageObserver, Observer {
         return null;
     }
     private ImageView getImageView(String colour, int position) {
-        log.debug("Poskytnutá barva do metody: " + colour);
         if(colour.equalsIgnoreCase("red")) {
             colour = "c";
-            log.debug("Barva byla změněna na " + colour);
         }
         else if(colour.equalsIgnoreCase("yellow")) {
             colour = "l";
-            log.debug("Barva byla změněna na " + colour);
         }
         else if(colour.equalsIgnoreCase("blue")) {
             colour = "m";
-            log.debug("Barva byla změněna na " + colour);
         }
         else if(colour.equalsIgnoreCase("green")) {
             colour = "z";
-            log.debug("Barva byla změněna na " + colour);
         }
-        else {
-            log.debug("Barva nebyla změněna");
-        }
-        String key = colour.toLowerCase().charAt(0) + Integer.toString(position + 1) + "x"; // PROBLÉM SE ZELENOU BARVOU, Z1X NEEXISTUJE
+        String key = colour.toLowerCase().charAt(0) + Integer.toString(position) + "x"; // PROBLÉM SE ZELENOU BARVOU, Z1X NEEXISTUJE
         ImageView obrazek;
         log.debug("Klíč, podle kterého hledat: " + key);
         for (Map.Entry<String, ImageView> entry : imageViewMap.entrySet()) {
             String klic = entry.getKey();
-            log.debug("Vyhledávám v klíči: " + klic);
             if(klic.contains(key)) {
-                log.debug("Nalezen klíč, získávám obrázek");
                 obrazek = entry.getValue();
                 return obrazek;
             }
@@ -407,43 +420,38 @@ public class HomeController implements MessageObserver, Observer {
         // z11 = Zelená barva 11. políčko
 
         Board aktualniDeska = aktualniLobby.getBoardState();
-        Player aktualniHrac = aktualniDeska.getPlayerOnTurn();
-        String barvaAktualniHrac = aktualniDeska.getPlayerColour(aktualniHrac.getName());
+
+        List<Player> aktualniHraci = aktualniDeska.getPlayerMap().values().stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        String barvaAktualniHrac;
         ImageView figurka;
         ImageView poziceNaDesce;
         int poziceTokenu = 0;
-        int aktualniToken = 0;
-        for (Token token : aktualniHrac.getTokens()) {
-            poziceTokenu = token.getPosition();
-            log.debug("Pozice tokenu: " + poziceTokenu);
-            if(poziceTokenu == 0) {
-                log.debug("Token je nula, nic tedy nepřesouvám");
-                continue;
+        int aktualniToken = -1;
+
+        for(Player aktualniHrac : aktualniHraci) {
+            barvaAktualniHrac = aktualniDeska.getPlayerColour(aktualniHrac.getName());
+            for (Token token : aktualniHrac.getTokens()) {
+                aktualniToken++;
+                poziceTokenu = token.getPosition();
+                log.debug("Pozice tokenu: " + poziceTokenu);
+                if(poziceTokenu == 0) {
+                    log.debug("Token je nula, nic tedy nepřesouvám");
+                    continue;
+                }
+                log.debug("Token není nula");
+                figurka = getFigurka(barvaAktualniHrac, aktualniToken);
+                log.debug("Získaná figurka: " + figurka.getId());
+                log.debug("Aktuální token: " + chosenToken);
+                poziceNaDesce = getImageView(barvaAktualniHrac, poziceTokenu);
+
+                figurka.setLayoutX(poziceNaDesce.getLayoutX());
+                figurka.setLayoutY(poziceNaDesce.getLayoutY());
             }
-            log.debug("Token není nula");
-            figurka = getFigurka(barvaAktualniHrac, aktualniToken);
-            log.debug("Získaná figurka: " + figurka.getId());
-            log.debug("Aktuální token: " + aktualniToken);
-            poziceNaDesce = getImageView(barvaAktualniHrac, poziceTokenu);
-
-            figurka.setLayoutX(poziceNaDesce.getLayoutX());
-            figurka.setLayoutY(poziceNaDesce.getLayoutY());
-            aktualniToken++;
+            aktualniToken = 0;
         }
-/*
-        String zvolenaFigurka = figurka.getId();
-        String barva = String.valueOf(zvolenaFigurka.charAt(zvolenaFigurka.length() - 1)).toLowerCase();
-        int pohyb = aktualniLobby.getBoardState().getDiceValue();
-
-        log.debug("Získaná barva v metodě moveTokens: " + barva);
-        log.debug("Figurka se posune o: " + pohyb);
-        log.debug("Pokus o získání imageViewPozice");
-        ImageView imageViewPozice = getImageView(barva, pohyb);
-        log.debug("Získán imageViewPozice: " + imageViewPozice.getId());
-        figurka.setLayoutX(imageViewPozice.getLayoutX());
-        figurka.setLayoutY(imageViewPozice.getLayoutY());
-
-        selectedFigurka = null;*/
     }
 
     public void odeslat(ActionEvent actionEvent) throws IOException {
@@ -467,31 +475,6 @@ public class HomeController implements MessageObserver, Observer {
         }
         log.debug("Kolik je dice value: " + aktualniLobby.getBoardState().getDiceValue());
         log.debug("Hráč na řadě: " + aktualniLobby.getBoardState().getPlayerOnTurn().getName());
-    }
-    private void nasazeniFigurky() {
-        String zvolenaFigurka = selectedFigurka.getId();
-        String barva = String.valueOf(zvolenaFigurka.charAt(zvolenaFigurka.length() - 1));
-
-        /*List<Pair<Double, Double>> startovniPozice = startPositions.get(barva);
-        if(startovniPozice == null) {
-            return;
-        }
-        for (Pair<Double, Double> startPosition: startovniPozice)
-        {
-            if(startPosition.getKey() == selectedFigurka.getLayoutX() &&
-                    startPosition.getValue() == selectedFigurka.getLayoutY())
-            {
-
-            }
-        }*/
-
-        ImageView startPosition = nasazeniPozice.get(barva);
-
-        if(selectedFigurka.getLayoutX() == 0)
-        if(startPosition != null) {
-            selectedFigurka.setLayoutX(startPosition.getLayoutX());
-            selectedFigurka.setLayoutY(startPosition.getLayoutY());
-        }
     }
     private String response;
     @FXML
@@ -543,29 +526,12 @@ public class HomeController implements MessageObserver, Observer {
     @Override
     public void update(Observable o, Object arg) {
         if(arg instanceof Board) {
-            log.debug("Zachycena nová deska");
             Board nova = (Board) arg;
 
-            log.info("Nastavuji novou desku do lobby");
+            placeHolderLobby = aktualniLobby;
             aktualniLobby.setBoardState(nova);
 
-            int i = 0;
-            log.info("Informace o nové lobby");
-            log.debug("Název lobby: " + aktualniLobby.getName());
-            for(Player player : aktualniLobby.getPlayers()) {
-                if(player != null) {
-                    log.debug("Jméno hráče: " + player.getName());
-                    i = 0;
-                    for(Token token : player.getTokens()) {
-                        log.debug("Token hráče: " + i + "-" + token.getPosition());
-                        i++;
-                    }
-                }
-            }
-            log.debug("Kolik je dice value: " + aktualniLobby.getBoardState().getDiceValue());
-            log.debug("Hráč na řadě: " + aktualniLobby.getBoardState().getPlayerOnTurn().getName());
-            //log.info("Spouštím metodu pro přesun tokenů");
-            //moveTokens();
+            moveTokens();
         }
     }
 }
