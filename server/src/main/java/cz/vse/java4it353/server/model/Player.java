@@ -63,7 +63,7 @@ public class Player {
             Token token = tokens[tokenIndex];
             int newPosition = 0;
 
-          if (token.getPosition() != 0 && canMove(token, steps)) {
+          if (canMove(token, steps)) {
                 newPosition = token.move(steps);
                 log.info("Player " + name + " moved token " + tokenIndex + " to position " + newPosition);
           } else {
@@ -125,8 +125,8 @@ public class Player {
 
         if (otherPlayer != this && otherPlayer != null) {
             for (Token otherToken : otherPlayer.getTokens()) {
-                log.debug( " Absolute pozice druheho " + (otherToken.getPosition() + otherPlayerOffset) % (Board.BOARD_SIZE - 4));
-                log.debug( " Absolute pozice prveho " + (newPosition + playerOffset) % (Board.BOARD_SIZE - 4));
+                //log.debug( " Absolute pozice druheho " + (otherToken.getPosition() + otherPlayerOffset) % (Board.BOARD_SIZE - 4));
+                //log.debug( " Absolute pozice prveho " + (newPosition + playerOffset) % (Board.BOARD_SIZE - 4));
                 if (((otherToken.getPosition() + otherPlayerOffset) % (Board.BOARD_SIZE - 4)
                         == (newPosition + playerOffset) % (Board.BOARD_SIZE - 4))
                         && otherToken.getPosition() != 0
