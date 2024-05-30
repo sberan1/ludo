@@ -353,10 +353,10 @@ public class HomeController implements MessageObserver, Observer {
                 new Pair<>(figurka4Z.getLayoutX(), figurka4Z.getLayoutY())
         );
 
-        startPositions.put("C", cervenyHome);
-        startPositions.put("L", zlutyHome);
-        startPositions.put("M", modryHome);
-        startPositions.put("Z", zelenyHome);
+        startPositions.put("c", cervenyHome);
+        startPositions.put("l", zlutyHome);
+        startPositions.put("m", modryHome);
+        startPositions.put("z", zelenyHome);
         diceImages = new ArrayList<>();
         Image obrazek;
         String adresa;
@@ -470,17 +470,12 @@ public class HomeController implements MessageObserver, Observer {
         }
         String key = colour.toLowerCase().charAt(0) + Integer.toString(position) + "x"; // PROBLÉM SE ZELENOU BARVOU, Z1X NEEXISTUJE
         ImageView obrazek;
-        log.debug("Klíč, podle kterého hledat: " + key);
         for (Map.Entry<String, ImageView> entry : imageViewMap.entrySet()) {
-            log.debug("Jsem ve foru");
             String klic = entry.getKey();
-            log.debug("Získán imageview " + klic + ", probíhá porovnání");
             if(klic.contains(key)) {
-                log.debug("Je to stejný");
                 obrazek = entry.getValue();
                 return obrazek;
             }
-            log.debug("neni to stejný, jedu dál");
         }
         return null;
     }
@@ -504,21 +499,45 @@ public class HomeController implements MessageObserver, Observer {
         ImageView poziceNaDesce;
         int poziceTokenu = 0;
         int aktualniToken = -1;
+        List<Pair<Double, Double>> pary = new ArrayList<>();
 
         for(Player aktualniHrac : aktualniHraci) {
-            log.debug("TOKEN PŘED ÚPRAVOU: " + aktualniToken);
-            barvaAktualniHrac = aktualniDeska.getPlayerColour(aktualniHrac.getName());
             aktualniToken = -1;
-            log.debug("TOKEN PO ÚPRAVĚ: " + aktualniToken);
             for (Token token : aktualniHrac.getTokens()) {
+                barvaAktualniHrac = aktualniDeska.getPlayerColour(aktualniHrac.getName()); // BARVA MUSÍ BEJT JEŠTĚ NĚKDE
                 aktualniToken++;
                 log.debug("TOKEN PO ZVÝŠENÍ: " + aktualniToken);
                 poziceTokenu = token.getPosition();
-                if(poziceTokenu == 0) continue;
                 figurka = getFigurka(barvaAktualniHrac, aktualniToken);
                 if(figurka == null) continue;
-                log.debug("Získaná figurka: " + figurka.getId());
-                log.debug("Aktuální token: " + chosenToken);
+                if(poziceTokenu == 0) {
+                    if(barvaAktualniHrac.equalsIgnoreCase("red")) {
+                        barvaAktualniHrac = "c";
+                    }
+                    else if(barvaAktualniHrac.equalsIgnoreCase("yellow")) {
+                        barvaAktualniHrac = "l";
+                    }
+                    else if(barvaAktualniHrac.equalsIgnoreCase("blue")) {
+                        barvaAktualniHrac = "m";
+                    }
+                    else if(barvaAktualniHrac.equalsIgnoreCase("green")) {
+                        barvaAktualniHrac = "z";
+                    }
+                    log.debug("Pozice tokenu je 0, barva hráče je " + barvaAktualniHrac);
+                    pary = startPositions.get(barvaAktualniHrac);
+                    log.info("Získal jsem páry startujících pozicí barvy" + barvaAktualniHrac);
+                    if(token.getPosition() == 0) {
+                        log.info("Hodnota tokenu je 0");
+                        int numOfFigurkaMinusOne = Integer.parseInt(figurka.getId().substring(7, 8)) - 1;
+                        log.debug("Číslo figurky, na které jsem klikl, je " + (numOfFigurkaMinusOne + 1) + ", ale byla snížena na " + numOfFigurkaMinusOne);
+                        Pair<Double, Double> par = pary.get(numOfFigurkaMinusOne);
+                        log.debug("Byl získán pár, hodnota x: " + par.getKey() + ", hodnota y: " + par.getValue());
+                        figurka.setLayoutX(par.getKey());
+                        figurka.setLayoutY(par.getValue());
+                        log.debug("Layout figurky nastaven");
+                    }
+                    continue;
+                }
                 poziceNaDesce = getImageView(barvaAktualniHrac, poziceTokenu);
                 if(poziceNaDesce == null) continue;
 
