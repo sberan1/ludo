@@ -12,6 +12,12 @@ import java.net.Socket;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Command for choosing color of player
+ *
+ * @author sberan
+ */
+
 public class ChooseColorCommand implements ICommand {
 
     Socket clientSocket;
@@ -19,7 +25,11 @@ public class ChooseColorCommand implements ICommand {
     private final Logger logger = LoggerFactory.getLogger(ChooseColorCommand.class);
     ObjectMapper mapper = new ObjectMapper();
 
-
+    /**
+     * Constructor
+     * @param clientSocket socket of current player
+     * @param clientSockets list of all client sockets
+     */
     public ChooseColorCommand(Socket clientSocket, List<Socket> clientSockets) {
         this.clientSocket = clientSocket;
         this.clientSockets = clientSockets;
@@ -35,28 +45,25 @@ public class ChooseColorCommand implements ICommand {
         try {
             ColorEnum color = ColorEnum.valueOf(data.toUpperCase());
             Game game = Game.getInstance();
-            Lobby lobby = game.listLobbies().stream()
-                    .filter(lobbyLocal -> Arrays.stream(lobbyLocal.getPlayers())
-                    .anyMatch(player -> player.getClientSocket() == clientSocket))
-                    .findFirst()
-                    .orElse(null);
+            Lobby lobby = game.getLobbyWithPlayer(clientSocket);
             if (lobby == null) {
                 logger.warn("Player not found in any lobby");
                 throw new Exception("Player not found in any lobby");
             }
+            logger.info("Lobby " + lobby.getName() + " found.");
 
-            Player player = Arrays.stream(lobby.getPlayers())
-                    .filter(pl -> pl.getClientSocket() == clientSocket)
-                    .findFirst()
-                    .orElse(null);
 
+            Player player = game.getPlayerBySocket(clientSocket);
             if (player == null) {
                 logger.warn("Player not found in lobby");
                 throw new Exception("Player not found in lobby");
             }
+            logger.info("Player " + player.getName() + " found on " + clientSocket.getInetAddress().getHostAddress() + " socket");
+
 
             lobby.getBoardState().setPlayer(player, color);
-            game.notifyPlayers(game.JSONLobbies(), clientSockets);
+            game.notifyPlayers("L " + game.JSONLobbies(), clientSockets);
+            lobby.sendMessageToAllPlayers("J " + mapper.writeValueAsString(lobby));
             return "J " + mapper.writeValueAsString(lobby);
         }
         catch (IllegalArgumentException e) {

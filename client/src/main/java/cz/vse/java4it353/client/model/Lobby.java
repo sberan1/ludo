@@ -2,6 +2,10 @@ package cz.vse.java4it353.client.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import cz.vse.java4it353.client.controllers.HomeController;
+import cz.vse.java4it353.client.enums.ColorEnum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 public class Lobby {
+    private static final Logger log = LoggerFactory.getLogger(Lobby.class);
     private String name;
     private List<Player> players;
     private Map<String, Player> playerMap;
@@ -49,6 +54,7 @@ public class Lobby {
     }
 
     public void setBoardState(Board boardState) {
+        log.debug("Zachycené informace o desce, začíná výpis");
         this.boardState = boardState;
     }
 

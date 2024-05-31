@@ -1,5 +1,6 @@
 package cz.vse.java4it353.client.model;
 
+import cz.vse.java4it353.client.enums.ColorEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,7 +9,7 @@ import java.util.Map;
 
 public class Board {
     private static final Logger logger = LoggerFactory.getLogger(Board.class);
-    private Map<String, Player> playerMap;
+    private Map<ColorEnum, Player> playerMap;
     private Player playerOnTurn;
     private int diceValue;
 
@@ -16,11 +17,11 @@ public class Board {
         this.playerMap = new HashMap<>();
     }
 
-    public Map<String, Player> getPlayerMap() {
+    public Map<ColorEnum, Player> getPlayerMap() {
         return playerMap;
     }
 
-    public void setPlayerMap(Map<String, Player> playerMap) {
+    public void setPlayerMap(Map<ColorEnum, Player> playerMap) {
         this.playerMap = playerMap;
     }
 
@@ -38,5 +39,15 @@ public class Board {
 
     public void setDiceValue(int diceValue) {
         this.diceValue = diceValue;
+    }
+    public String getPlayerColour(String name) {
+        ColorEnum currentColor = null;
+        for (Map.Entry<ColorEnum, Player> entry : playerMap.entrySet()) {
+            if (entry.getValue().getName().equals(name)) {
+                currentColor = entry.getKey();
+                break;
+            }
+        }
+        return String.valueOf(currentColor);
     }
 }
