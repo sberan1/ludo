@@ -10,10 +10,20 @@ import cz.vse.java4it353.server.model.Player;
 import java.lang.management.PlatformLoggingMXBean;
 import java.net.Socket;
 
+/**
+ * Command for moving a token
+ *
+ * @version 1.0.0
+ * @author sberan
+ */
 public class MoveTokenCommand implements ICommand {
     private final Socket clientSocket;
     ObjectMapper mapper = new ObjectMapper();
 
+    /**
+     * Constructor
+     * @param clientSocket socket of current player
+     */
     public MoveTokenCommand(Socket clientSocket) {
         this.clientSocket = clientSocket;
     }

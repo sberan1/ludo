@@ -19,6 +19,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Server class for handling client connections and commands
+ *
+ * @author sberan
+ */
 public class Server {
     private final int port;
     private ServerSocket serverSocket;
@@ -27,7 +32,10 @@ public class Server {
     private final List<Socket> clientSockets; // Track active client sockets
     private static final Logger log = LoggerFactory.getLogger(Server.class);
 
-
+    /**
+     * Constructor
+     * @param port port to listen on
+     */
     public Server(int port) {
         this.port = port;
         this.clientSockets = Collections.synchronizedList(new ArrayList<>());
@@ -35,6 +43,9 @@ public class Server {
         this.isRunning = true;
     }
 
+    /**
+     * Start the server
+     */
     public void start() {
         try {
             serverSocket = new ServerSocket(port);
@@ -89,6 +100,9 @@ public class Server {
         }
     }
 
+    /**
+     * Stop the server
+     */
     public void stop() {
         isRunning = false;
         try {

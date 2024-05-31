@@ -12,6 +12,12 @@ import java.net.Socket;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Command for choosing color of player
+ *
+ * @author sberan
+ */
+
 public class ChooseColorCommand implements ICommand {
 
     Socket clientSocket;
@@ -19,7 +25,11 @@ public class ChooseColorCommand implements ICommand {
     private final Logger logger = LoggerFactory.getLogger(ChooseColorCommand.class);
     ObjectMapper mapper = new ObjectMapper();
 
-
+    /**
+     * Constructor
+     * @param clientSocket socket of current player
+     * @param clientSockets list of all client sockets
+     */
     public ChooseColorCommand(Socket clientSocket, List<Socket> clientSockets) {
         this.clientSocket = clientSocket;
         this.clientSockets = clientSockets;

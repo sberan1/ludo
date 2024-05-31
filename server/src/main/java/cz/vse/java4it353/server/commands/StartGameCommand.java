@@ -9,11 +9,21 @@ import org.slf4j.LoggerFactory;
 import java.net.Socket;
 import java.util.List;
 
+/**
+ * Command for starting the game
+ *
+ * @author sberan
+ */
 public class StartGameCommand implements ICommand{
     private final Socket clientSocket;
     private static final Logger logger = LoggerFactory.getLogger(StartGameCommand.class);
     ObjectMapper mapper = new ObjectMapper();
 
+    /**
+     * Constructor
+     * @param clientSocket socket of current player
+     * @param clientSockets list of all client sockets
+     */
     public StartGameCommand(Socket clientSocket, List<Socket> clientSockets) {
         this.clientSocket = clientSocket;
     }

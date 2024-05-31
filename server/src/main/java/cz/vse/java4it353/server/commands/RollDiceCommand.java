@@ -13,12 +13,21 @@ import org.slf4j.LoggerFactory;
 import java.net.Socket;
 import java.util.Map;
 
+/**
+ * Command for rolling dice
+ *
+ * @version 1.0.0
+ * @author sberan
+ */
 public class RollDiceCommand implements ICommand{
     private static final Logger logger = LoggerFactory.getLogger(RollDiceCommand.class);
     private final Socket clientSocket;
     private final ObjectMapper mapper = new ObjectMapper();
 
-
+    /**
+     * Constructor
+     * @param clientSocket socket of current player
+     */
     public RollDiceCommand(Socket clientSocket) {
         this.clientSocket = clientSocket;
     }

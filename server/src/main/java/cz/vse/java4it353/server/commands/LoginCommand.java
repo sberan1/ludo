@@ -14,12 +14,19 @@ import java.net.Socket;
 /**
  * Takes name of the player and creates a new player with that name
  *
+ * @author sberan
  */
 public class LoginCommand implements ICommand {
     List<Socket> clientSockets;
     private Socket clientSocket;
     private static final Logger logger = LoggerFactory.getLogger(LoginCommand.class);
 
+    /**
+     * Constructor
+     *
+     * @param clientSocket socket of current player
+     * @param clientSockets list of all client sockets
+     */
     public LoginCommand(Socket clientSocket, List<Socket> clientSockets) {
         this.clientSocket = clientSocket;
         this.clientSockets = clientSockets;
