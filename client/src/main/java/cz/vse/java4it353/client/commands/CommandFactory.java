@@ -14,6 +14,7 @@ public class CommandFactory {
         commandMap.put("J", new CreateLobbyCommand(o));
         commandMap.put("B", new StartGameCommand(o));
         commandMap.put("T", new ChooseTokenCommand(o));
+        commandMap.put("W", new WinnerCommand(o));
         //.put("E", null);
     }
 

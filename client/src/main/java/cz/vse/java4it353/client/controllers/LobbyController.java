@@ -75,6 +75,7 @@ public class LobbyController implements MessageObserver, Observer {
                 handleLobbySelection(newValue);
             }
         });
+        isApplicationLoaded = false;
         client.send("L " + Main.getPlayerName());
     }
     private void handleLobbySelection(String selectedLobbyName) {

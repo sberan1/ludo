@@ -15,6 +15,9 @@ import javafx.beans.binding.Bindings;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
@@ -24,11 +27,13 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,6 +41,24 @@ import java.util.stream.Collectors;
 
 public class HomeController implements MessageObserver, Observer {
     private static final Logger log = LoggerFactory.getLogger(HomeController.class);
+    public static Stage primaryStage;
+    private boolean gameEnded = false;
+    private ImageView selectedFigurka = null;
+    private Map<String, List<Pair<Double, Double>>> startPositions = new HashMap<>();
+    private Client client;
+    private Lobby aktualniLobby = new Lobby();
+    private CommandFactory cf;
+    private Map<String, ImageView> imageViewMap;
+    private String barvaHrace;
+    int chosenToken = 0;
+    private List<Image> diceImages;
+    private Random random = new Random();
+    private boolean rolledDice = false;
+    private String response;
+    private Lobby placeHolderLobby = new Lobby();
+    private String hracNaTahu;
+    private int hracHodilNaKostce = 0;
+    private Map<ImageView, Timeline> animationMap = new HashMap<>(); // Mapa pro uložení animací
     @FXML
     public Label labelRedPlayer;
     @FXML
@@ -44,22 +67,10 @@ public class HomeController implements MessageObserver, Observer {
     public Label labelBluePlayer;
     @FXML
     public Label labelGreenPlayer;
-    private ImageView selectedFigurka = null;
-    private Map<String, ImageView> nasazeniPozice = new HashMap<>();
-    private Map<String, List<Pair<Double, Double>>> startPositions = new HashMap<>();
-    private Client client;
-    private Lobby aktualniLobby = new Lobby();
-    private CommandFactory cf;
-    @FXML
-    private Button hodKostkouButton;
     @FXML
     private ImageView kostkaImageView;
     @FXML
     private TextArea chatTextArea;
-    @FXML
-    private TextField vstupTextField;
-    @FXML
-    private Button odeslatButton;
     @FXML
     private ImageView figurka1C;
     @FXML
@@ -204,8 +215,6 @@ public class HomeController implements MessageObserver, Observer {
     private ImageView z42;
     @FXML
     private ImageView z41;
-    private Map<String, ImageView> imageViewMap;
-    private String barvaHrace;
     public void initialize() {
         try {
             client = Client.getInstance();
@@ -213,21 +222,29 @@ public class HomeController implements MessageObserver, Observer {
         } catch (IOException e) {
             log.error("Chyba při inicializaci klienta", e);
         }
+        gameEnded = false;
         cf = new CommandFactory(this);
         aktualniLobby = Main.getLobby();
-        if(aktualniLobby != null && aktualniLobby.getPlayers() != null) {
+        initializeImageViewMap();
+        initializePlayerColor();
+        setFigurkaToFront();
+        setFigurkaClickHandlers();
+        initializeStartPositions();
+        loadDiceImages();
+        firstStart();
+    }
+    private void initializePlayerColor() {
+        if (aktualniLobby != null && aktualniLobby.getPlayers() != null) {
             barvaHrace = aktualniLobby.getPlayers().stream()
-                    .filter(Objects::nonNull) // Pouze ne-null hráče
-                    .filter(player -> Main.getPlayerName().equals(player.getName())) // Hráč podle jména
-                    .map(player -> aktualniLobby.getBoardState().getPlayerColour(player.getName())) // Mapuje hráče na barvu
-                    .findFirst() // Najde první shodu
-                    .orElse(null); // Vrátí barvu nebo null, pokud žádný hráč neodpovídá
+                    .filter(Objects::nonNull)
+                    .filter(player -> Main.getPlayerName().equals(player.getName()))
+                    .map(player -> aktualniLobby.getBoardState().getPlayerColour(player.getName()))
+                    .findFirst()
+                    .orElse(null);
         }
-        if(barvaHrace.equalsIgnoreCase("red")) barvaHrace = "c";
-        else if(barvaHrace.equalsIgnoreCase("yellow")) barvaHrace = "l";
-        else if(barvaHrace.equalsIgnoreCase("blue")) barvaHrace = "m";
-        else if(barvaHrace.equalsIgnoreCase("green")) barvaHrace = "z";
-
+        barvaHrace = convertEnglishColourToCzech(barvaHrace);
+    }
+    private void initializeImageViewMap() {
         imageViewMap = new HashMap<>();
         imageViewMap.put("c1xl31xm21xz11", c1xl31xm21xz11);
         imageViewMap.put("c2xl32xm22xz12", c2xl32xm22xz12);
@@ -285,27 +302,26 @@ public class HomeController implements MessageObserver, Observer {
         imageViewMap.put("z43", z43);
         imageViewMap.put("z42", z42);
         imageViewMap.put("z41", z41);
-
+    }
+    private void setFigurkaToFront() {
         figurka1C.toFront();
         figurka2C.toFront();
         figurka3C.toFront();
         figurka4C.toFront();
-
         figurka1L.toFront();
         figurka2L.toFront();
         figurka3L.toFront();
         figurka4L.toFront();
-
         figurka1M.toFront();
         figurka2M.toFront();
         figurka3M.toFront();
         figurka4M.toFront();
-
         figurka1Z.toFront();
         figurka2Z.toFront();
         figurka3Z.toFront();
         figurka4Z.toFront();
-
+    }
+    private void setFigurkaClickHandlers() {
         figurka1C.setOnMouseClicked(this::handleFigurkaClick);
         figurka2C.setOnMouseClicked(this::handleFigurkaClick);
         figurka3C.setOnMouseClicked(this::handleFigurkaClick);
@@ -322,12 +338,8 @@ public class HomeController implements MessageObserver, Observer {
         figurka2L.setOnMouseClicked(this::handleFigurkaClick);
         figurka3L.setOnMouseClicked(this::handleFigurkaClick);
         figurka4L.setOnMouseClicked(this::handleFigurkaClick);
-
-        nasazeniPozice.put("C", c1xl31xm21xz11);
-        nasazeniPozice.put("L", c11xl1xm31xz21);
-        nasazeniPozice.put("M", c21xl11xm1xz31);
-        nasazeniPozice.put("Z", c31xl21xm11xz01);
-
+    }
+    private void initializeStartPositions() {
         List<Pair<Double, Double>> cervenyHome = Arrays.asList(
                 new Pair<>(figurka1C.getLayoutX(), figurka1C.getLayoutY()),
                 new Pair<>(figurka2C.getLayoutX(), figurka2C.getLayoutY()),
@@ -357,22 +369,17 @@ public class HomeController implements MessageObserver, Observer {
         startPositions.put("l", zlutyHome);
         startPositions.put("m", modryHome);
         startPositions.put("z", zelenyHome);
+    }
+    private void loadDiceImages() {
         diceImages = new ArrayList<>();
-        Image obrazek;
-        String adresa;
         for (int i = 1; i <= 6; i++) {
-            adresa = "/kostka/" + i + ".png";
+            String adresa = "/kostka/" + i + ".png";
             log.debug("Pokus o nahrání obrázku, adresa: " + adresa);
-
-            obrazek = new Image(getClass().getResourceAsStream(adresa));
+            Image obrazek = new Image(getClass().getResourceAsStream(adresa));
             log.debug("Název obrázku: " + obrazek.getUrl());
             diceImages.add(obrazek);
-
         }
-        firstStart();
     }
-
-    int chosenToken = 0;
     private void handleFigurkaClick(MouseEvent event) {
         selectedFigurka = (ImageView) event.getSource();
         String zvolenaFigurka = selectedFigurka.getId();
@@ -382,32 +389,24 @@ public class HomeController implements MessageObserver, Observer {
         }
 
         chosenToken = Integer.parseInt(zvolenaFigurka.substring(7, 8)) - 1; // "figurka1C" -> "1" -> token 0
-
         client.send("M " + chosenToken);
-        chatTextArea.appendText("\nServer: Hráč " + hracNaTahu + " právě odehrál svůj tah!");
     }
-    private List<Image> diceImages;
-    private Random random = new Random();
-    private boolean rolledDice = false;
     public void hodKostkou(ActionEvent actionEvent) {
         log.info("Byla spuštěna metoda hoď kostkou");
         Task<Void> diceRollTask = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                int rolls = 5 + random.nextInt(6); // Roll between 5 and 10 times
+                int rolls = 5 + random.nextInt(6); // Hodit 5-10x
                 for (int i = 0; i < rolls; i++) {
                     Platform.runLater(() -> kostkaImageView.setImage(diceImages.get(random.nextInt(6))));
-                    Thread.sleep(100); // Wait for 100 milliseconds between each roll
+                    Thread.sleep(100); // Mezi každým hodem počkat 100 ms
                 }
 
-                // Send the roll command to the server
                 client.send("R");
-
                 return null;
             }
         };
 
-        // Start the dice roll task in a new thread
         log.info("Spouštím vlákno pro roll kostkou");
         new Thread(diceRollTask).start();
 
@@ -417,59 +416,68 @@ public class HomeController implements MessageObserver, Observer {
         switch (colour.toUpperCase()) {
             case "RED":
                 log.info("Vybírám z barvy ČERVENÁ");
-                switch (token) {
-                    case 0: return figurka1C;
-                    case 1: return figurka2C;
-                    case 2: return figurka3C;
-                    case 3: return figurka4C;
-                }
-                break;
+                return switch (token) {
+                    case 0 -> figurka1C;
+                    case 1 -> figurka2C;
+                    case 2 -> figurka3C;
+                    case 3 -> figurka4C;
+                    default -> null;
+                };
             case "YELLOW":
                 log.info("Vybírám z barvy ŽLUTÁ");
-                switch (token) {
-                    case 0: return figurka1L;
-                    case 1: return figurka2L;
-                    case 2: return figurka3L;
-                    case 3: return figurka4L;
-                }
-                break;
+                return switch (token) {
+                    case 0 -> figurka1L;
+                    case 1 -> figurka2L;
+                    case 2 -> figurka3L;
+                    case 3 -> figurka4L;
+                    default -> null;
+                };
             case "BLUE":
                 log.info("Vybírám z barvy MODRÁ");
-                switch (token) {
-                    case 0: return figurka1M;
-                    case 1: return figurka2M;
-                    case 2: return figurka3M;
-                    case 3: return figurka4M;
-                }
-                break;
+                return switch (token) {
+                    case 0 -> figurka1M;
+                    case 1 -> figurka2M;
+                    case 2 -> figurka3M;
+                    case 3 -> figurka4M;
+                    default -> null;
+                };
             case "GREEN":
                 log.info("Vybírám z barvy ZELENÁ");
-                switch (token) {
-                    case 0: return figurka1Z;
-                    case 1: return figurka2Z;
-                    case 2: return figurka3Z;
-                    case 3: return figurka4Z;
-                }
-                break;
+                return switch (token) {
+                    case 0 -> figurka1Z;
+                    case 1 -> figurka2Z;
+                    case 2 -> figurka3Z;
+                    case 3 -> figurka4Z;
+                    default -> null;
+                };
+            default:
+                log.debug("NEBYLA ZVOLENA ŽÁDNÁ FIGURKA");
+                return null;
         }
-        log.debug("NEBYLA ZVOLENA ŽÁDNÁ FIGURKA");
-        return null;
+    }
+    private String convertEnglishColourToCzech(String colour) {
+        switch (colour.toLowerCase()) {
+            case "red":
+                colour = "c";
+                break;
+            case "yellow":
+                colour = "l";
+                break;
+            case "blue":
+                colour = "m";
+                break;
+            case "green":
+                colour = "z";
+                break;
+            default:
+                return null;
+        }
+        return colour;
     }
     private ImageView getImageView(String colour, int position) {
         ImageView obrazek;
         String key;
-        if(colour.equalsIgnoreCase("red")) {
-            colour = "c";
-        }
-        else if(colour.equalsIgnoreCase("yellow")) {
-            colour = "l";
-        }
-        else if(colour.equalsIgnoreCase("blue")) {
-            colour = "m";
-        }
-        else if(colour.equalsIgnoreCase("green")) {
-            colour = "z";
-        }
+        colour = convertEnglishColourToCzech(colour);
 
         log.debug("Zjišťuji, jaký bude klíč na základě barvy " + colour + " a pozice " + position);
         if(colour.equalsIgnoreCase("z") && position < 10) {
@@ -496,7 +504,7 @@ public class HomeController implements MessageObserver, Observer {
         return null;
     }
     private void moveTokens() {
-        log.info("Započala metoda pro přesun");
+
         // Posun figurky na pozici, kterou mi vrátí server - musím si jí vypočítat sám
         // c1xl31xm21xz11
         // c1 = Červená barva 1. políčko
@@ -557,14 +565,9 @@ public class HomeController implements MessageObserver, Observer {
             }
         }
     }
-
     public void odeslat(ActionEvent actionEvent) throws IOException {
-        /*String message = vstupTextField.getText();
-        String command = "H " + message;
-        client.send(command);
-        vstupTextField.clear();*/
+        // Chat mezi hráči pomocí příkazu H, možné rozšíření
     }
-    private String response;
     @FXML
     private void firstStart() {
         int i = 1;
@@ -600,7 +603,6 @@ public class HomeController implements MessageObserver, Observer {
             else if(colour.equalsIgnoreCase("green")) labelGreenPlayer.setText(name);
         }
     }
-
     @Override
     public void onMessageReceived(String message) {
         log.debug("Přijatá zpráva v HomeControlleru: " + message);
@@ -627,10 +629,6 @@ public class HomeController implements MessageObserver, Observer {
             command.execute(handledData[1]);
         }
     }
-
-    private Lobby placeHolderLobby = new Lobby();
-    private String hracNaTahu;
-    private int hracHodilNaKostce = 0;
     @Override
     public void update(Observable o, Object arg) {
         if(arg instanceof Board) {
@@ -651,8 +649,34 @@ public class HomeController implements MessageObserver, Observer {
             Map<Integer, MovableToken> movableTokens = (Map<Integer, MovableToken>) arg;
             flashTokens(movableTokens);
         }
+        else if (arg instanceof Player) {
+            Player winner = (Player) arg;
+            JOptionPane.showMessageDialog(null, "Vítěz je: " + winner.getName(), "Výsledek hry", JOptionPane.INFORMATION_MESSAGE);
+            Platform.runLater(() -> {
+                if(!gameEnded) {
+                    Parent root = null;
+                    try {
+                        root = FXMLLoader.load(getClass().getResource("/lobby.fxml"));
+                    } catch (IOException e) {
+                        log.error("Ocitl se problém v načítání lobby.fxml", e);
+                    }
+
+                    // Vytvoření scény
+                    Scene scene = new Scene(root, 703, 980);
+
+                    // Nastavení scény a zobrazení hlavního okna
+                    primaryStage.close();
+                    primaryStage.setTitle("Člověče, nezlob se! - " + Main.getPlayerName());
+                    primaryStage.setScene(scene);
+                    primaryStage.show();
+                    //LobbyController.primaryStage = primaryStage;
+                    log.info("Spuštěna aplikace z aplikace.fxml se jménem " + Main.getPlayerName());
+                    gameEnded = true;
+                }
+            });
+            return;
+        }
     }
-    private Map<ImageView, Timeline> animationMap = new HashMap<>(); // Mapa pro uložení animací
     private void flashTokens(Map<Integer, MovableToken> movableTokens) {
         Player hracNaTahu = aktualniLobby.getBoardState().getPlayerOnTurn();
         String barvaHraceNaTahu = aktualniLobby.getBoardState().getPlayerColour(hracNaTahu.getName());
