@@ -27,10 +27,16 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 public class LobbyController implements MessageObserver, Observer {
-
     private static final Logger log = LoggerFactory.getLogger(LobbyController.class);
     private boolean isApplicationLoaded = false;
     public static Stage primaryStage;
+    private List<Lobby> allLobies = new CopyOnWriteArrayList<>();
+    private Lobby aktualniLobby;
+    private Client client;
+    private String color;
+    private String selectedLobby;
+    private CommandFactory cf;
+    private String response;
     @FXML
     public RadioButton rbCervena;
     @FXML
@@ -43,13 +49,6 @@ public class LobbyController implements MessageObserver, Observer {
     public Button buttonChooseColor;
     @FXML
     public Label labelColor;
-    private List<Lobby> allLobies = new CopyOnWriteArrayList<>();
-    private Lobby aktualniLobby;
-    private Client client;
-    private String color;
-    private String selectedLobby;
-    private CommandFactory cf;
-    private String response;
     @FXML
     private ListView<String> playersListView;
     @FXML
@@ -102,8 +101,6 @@ public class LobbyController implements MessageObserver, Observer {
             log.info("Lidé nastavení");
         }
     }
-
-
     private void updateLobbiesListView() {
         List<String> lobbyNames = allLobies.stream()
                 .map(Lobby::getName)
@@ -118,7 +115,6 @@ public class LobbyController implements MessageObserver, Observer {
         rbModra.setSelected(false);
         rbZelena.setSelected(false);
     }
-
     @FXML
     private void handleChooseColor() {
         boolean cervena = rbCervena.isSelected();
@@ -138,44 +134,18 @@ public class LobbyController implements MessageObserver, Observer {
         color = barva;
         client.send("CC " + barva);
     }
-
     @FXML
     private void handleStartGame() {
         client.send("S " + aktualniLobby.getName());
     }
-
     @FXML
     private void createLobby() {
         client.send("C " + lobbyNameInput.getText());
         lobbyNameInput.setText("");
     }
-
     @FXML
     private void joinLobby() {
         client.send("J " + this.selectedLobby);
-    }
-
-    public void stop() {
-
-    }
-
-    public void refresh(ActionEvent actionEvent) {
-        log.info("Vstupuji do all lobbies");
-        for(Lobby lobby : allLobies) {
-            log.info("Název lobby: " + lobby.getName());
-            log.info("Seznam hráčů:");
-            for(Player player : lobby.getPlayers()) {
-                if(player != null) {
-                    log.info(player.getName());
-                }
-            }
-        }
-        log.info("Vstupuji do aktuální lobby, název: " + aktualniLobby.getName());
-        for(Player player : aktualniLobby.getPlayers()) {
-            if(player != null) {
-                log.info("sráč: "+player.getName());
-            }
-        }
     }
     private void handleResponseFromServer(String data) throws Exception {
         log.debug("string před rozdělením: " + data);
@@ -190,7 +160,6 @@ public class LobbyController implements MessageObserver, Observer {
             command.execute(handledData[1]);
         }
     }
-
     @Override
     public void onMessageReceived(String message) {
         if(!isApplicationLoaded) {
