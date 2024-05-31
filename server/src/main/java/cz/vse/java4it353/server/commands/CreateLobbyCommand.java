@@ -11,12 +11,22 @@ import org.slf4j.LoggerFactory;
 import java.net.Socket;
 import java.util.List;
 
-
+/**
+ * Command for creating a lobby
+ *
+ * @version 1.0.0
+ * @author sberan
+ */
 public class CreateLobbyCommand implements ICommand{
     List<Socket> clientSockets;
     Socket clientSocket;
     ObjectMapper mapper = new ObjectMapper();
     private static final Logger logger = LoggerFactory.getLogger(CreateLobbyCommand.class);
+    /**
+     * Constructor
+     * @param clientSocket socket of current player
+     * @param clientSockets list of all client sockets
+     */
     public CreateLobbyCommand(Socket clientSocket, List<Socket> clientSockets){
         this.clientSocket = clientSocket;
         this.clientSockets = clientSockets;

@@ -10,10 +10,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Factory for creating commands
+ *
+ * @author sberan
+ */
 public class CommandFactory {
     private Map<String, ICommand> commandMap = new HashMap<>();
     private static final Logger logger = LoggerFactory.getLogger(CommandFactory.class);
 
+    /**
+     * Constructor
+     * @param clientSocket socket of current player
+     * @param serverSocket socket of the server
+     * @param clientSockets list of all client sockets
+     */
     public CommandFactory(Socket clientSocket, ServerSocket serverSocket, List<Socket> clientSockets) {
         //commandMap.put("E", new DisconnectCommand(clientSocket));
         commandMap.put("L", new LoginCommand(clientSocket, clientSockets));
@@ -25,6 +36,11 @@ public class CommandFactory {
         commandMap.put("M", new MoveTokenCommand(clientSocket));
     }
 
+    /**
+     * Returns command by key
+     * @param commandKey key of the command
+     * @return command
+     */
     public ICommand getCommand(String commandKey) {
         ICommand command = commandMap.get(commandKey);
         if (command == null) {

@@ -12,6 +12,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Player class representing a player in the game
+ */
 public class Player {
     private String uuid;
     private String name;
@@ -20,19 +23,36 @@ public class Player {
     Token[] tokens = {new Token(), new Token(), new Token(), new Token()};
     private static final Logger log = LoggerFactory.getLogger(Player.class);
 
+    /**
+     * Constructor
+     * @param name name of the player
+     * @param clientSocket socket of the player
+     */
     public Player(String name, Socket clientSocket) {
         this.name = name;
         this.clientSocket = clientSocket;
         uuid = UUID.randomUUID().toString();
     }
 
+    /**
+     * Constructor
+     */
     public Player() {
+        uuid = UUID.randomUUID().toString();
     }
 
+    /**
+     * Get client socket
+     * @return client socket
+     */
     public Socket getClientSocket() {
         return clientSocket;
     }
 
+    /**
+     * Set client socket
+     * @param clientSocket client socket
+     */
     public void setClientSocket(Socket clientSocket) {
         this.clientSocket = clientSocket;
         for (int i = 0; i < tokens.length; i++) {
@@ -40,25 +60,55 @@ public class Player {
         }
     }
 
+    /**
+     * Get UUID
+     * @return UUID
+     */
     public String getUuid() {
         return uuid;
     }
 
+    /**
+     * Set UUID
+     * @param uuid UUID
+     */
     public void setUuid(String uuid) {
         this.uuid = uuid;
     }
 
+    /**
+     * Get name
+     * @return name
+     */
     public String getName() {
         return name;
     }
+
+    /**
+     * Set name
+     * @param name name
+     */
 
     public void setName(String name) {
         this.name = name;
     }
 
+    /**
+     * Get tokens
+     * @return tokens
+     */
     public Token[] getTokens() {
         return tokens;
     }
+
+    /**
+     * Moving tokens on the board
+     *
+     * @param tokenIndex index of the token you want to move
+     * @param steps number of steps you want to move the token
+     * @param lobby lobby where the game is played
+     * @throws ForbiddenMoveException if the move is forbidden for any reason
+     */
     public void moveToken(int tokenIndex, int steps, Lobby lobby) throws ForbiddenMoveException {
             Token token = tokens[tokenIndex];
             int newPosition = 0;
@@ -85,6 +135,11 @@ public class Player {
         }
     }
 
+    /**
+     * Get movable tokens
+     * @param diceValue value of the dice
+     * @return map of movable tokens
+     */
     public Map<Integer, Token> getMovableTokens(int diceValue) {
         Map<Integer, Token> movableTokens = new HashMap<>();
         for (int i = 0; i < tokens.length; i++) {

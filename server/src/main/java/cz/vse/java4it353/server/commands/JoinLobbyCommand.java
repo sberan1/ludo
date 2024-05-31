@@ -9,12 +9,22 @@ import java.net.Socket;
 import java.util.List;
 import java.util.logging.Logger;
 
+/**
+ * Command for joining a lobby
+ *
+ * @author sberan
+ */
 public class JoinLobbyCommand implements ICommand {
     private Socket clientSocket;
     private List<Socket> clientSockets;
     Logger logger = Logger.getLogger(JoinLobbyCommand.class.getName());
     ObjectMapper mapper = new ObjectMapper();
 
+    /**
+     * Constructor
+     * @param clientSocket socket of current player
+     * @param clientSockets list of all client sockets
+     */
     public JoinLobbyCommand(Socket clientSocket, List<Socket> clientSockets) {
         this.clientSocket = clientSocket;
         this.clientSockets = clientSockets;
