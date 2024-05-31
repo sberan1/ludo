@@ -10,14 +10,24 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Třída pro listenera
+ */
 public class Listener implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(Listener.class);
     private final List<MessageObserver> observers = new ArrayList<>();
     private final InputStream inputStream;
     private volatile boolean running = true;
+    private final IConnectionLostHandler clh;
 
-    public Listener(InputStream inputStream) {
+    /**
+     * Konstruktor třídy
+     * @param inputStream
+     * @param handler
+     */
+    public Listener(InputStream inputStream, IConnectionLostHandler handler) {
         this.inputStream = inputStream;
+        this.clh = handler;
     }
     public void addObserver(MessageObserver observer) {
         observers.add(observer);
@@ -35,6 +45,11 @@ public class Listener implements Runnable {
     }
     public void stop() {
         running = false;
+        try {
+            inputStream.close();
+        } catch(IOException e) {
+            log.error("Error while closing input stream", e);
+        }
     }
 
     @Override
@@ -48,9 +63,13 @@ public class Listener implements Runnable {
             }
         } catch (IOException e) {
             if (running)
+            {
                 log.error("Exception occurred while listening for incoming communication.", e);
-             else
+                clh.onConnectionLost();
+            }
+             else {
                 log.info("Listener was stopped.");
+             }
         }
     }
 }

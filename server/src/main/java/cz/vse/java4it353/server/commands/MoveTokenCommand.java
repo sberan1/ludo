@@ -10,10 +10,20 @@ import cz.vse.java4it353.server.model.Player;
 import java.lang.management.PlatformLoggingMXBean;
 import java.net.Socket;
 
+/**
+ * Command for moving a token
+ *
+ * @version 1.0.0
+ * @author sberan
+ */
 public class MoveTokenCommand implements ICommand {
     private final Socket clientSocket;
     ObjectMapper mapper = new ObjectMapper();
 
+    /**
+     * Constructor
+     * @param clientSocket socket of current player
+     */
     public MoveTokenCommand(Socket clientSocket) {
         this.clientSocket = clientSocket;
     }
@@ -28,8 +38,14 @@ public class MoveTokenCommand implements ICommand {
         int tokenIndex = Integer.parseInt(data);
         player.moveToken(tokenIndex, board.getDiceValue(), lobby);
         board.nextPlayerOnTurn();
-
-        return "B " + mapper.writeValueAsString(lobby.getBoardState());
+        var json = mapper.writeValueAsString(board);
+        lobby.sendMessageToAllPlayers("B " + json);
+        Player winner = board.checkGameFinished();
+        if (winner != null) {
+            lobby.sendMessageToAllPlayers("W " + winner.getName());
+            game.removeLobby(lobby.getName());
+        }
+        return "B " + json;
     }
 
     private void validateCommand(Board board, Player player, String data) throws ForbiddenMoveException {

@@ -9,12 +9,22 @@ import java.net.Socket;
 import java.util.List;
 import java.util.logging.Logger;
 
+/**
+ * Command for joining a lobby
+ *
+ * @author sberan
+ */
 public class JoinLobbyCommand implements ICommand {
     private Socket clientSocket;
     private List<Socket> clientSockets;
     Logger logger = Logger.getLogger(JoinLobbyCommand.class.getName());
     ObjectMapper mapper = new ObjectMapper();
 
+    /**
+     * Constructor
+     * @param clientSocket socket of current player
+     * @param clientSockets list of all client sockets
+     */
     public JoinLobbyCommand(Socket clientSocket, List<Socket> clientSockets) {
         this.clientSocket = clientSocket;
         this.clientSockets = clientSockets;
@@ -22,6 +32,10 @@ public class JoinLobbyCommand implements ICommand {
 
     @Override
     public String execute(String data) throws Exception {
+        if (data == null) {
+            logger.warning("No data provided");
+            throw new Exception("No data provided");
+        }
         Game game = Game.getInstance();
         Lobby lobby = game.getLobby(data);
 
@@ -38,7 +52,7 @@ public class JoinLobbyCommand implements ICommand {
         }
 
         lobby.addPlayer(player);
-        game.notifyPlayers(game.JSONLobbies(), clientSockets);
+        game.notifyPlayers("L " + game.JSONLobbies(), clientSockets);
         return "J " + mapper.writeValueAsString(lobby);
     }
 }

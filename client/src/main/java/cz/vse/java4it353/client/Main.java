@@ -3,27 +3,29 @@ package cz.vse.java4it353.client;
 import cz.vse.java4it353.client.controllers.LobbyController;
 import cz.vse.java4it353.client.model.Lobby;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextInputDialog;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Optional;
-import java.util.UUID;
 
-
+/**
+ * Třída main, ve které se spouští aplikace
+ */
 public class Main extends Application {
     private static final Logger log = LoggerFactory.getLogger(Main.class);
     private static String PLAYER_NAME = "";
     private static Lobby MAIN_LOBBY = new Lobby();
 
+    /**
+     * Main metoda, ve které se spouští aplikace
+     * @param args
+     */
     public static void main(String[] args) {
         log.info("Starting JavaFX application");
         launch(args);
@@ -59,6 +61,7 @@ public class Main extends Application {
     @Override
     public void stop() throws Exception {
         Client.getInstance().closeConnection();
+        Client.getInstance().stop();
         super.stop();
     }
 }
