@@ -7,12 +7,18 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Třída pro definici hrací desky
+ */
 public class Board {
     private static final Logger logger = LoggerFactory.getLogger(Board.class);
     private Map<ColorEnum, Player> playerMap;
     private Player playerOnTurn;
     private int diceValue;
 
+    /**
+     * Konstruktor třídy
+     */
     public Board() {
         this.playerMap = new HashMap<>();
     }

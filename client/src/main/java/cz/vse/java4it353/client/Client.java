@@ -1,6 +1,5 @@
 package cz.vse.java4it353.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,9 +8,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.HashMap;
-import java.util.Map;
 
+/**
+ * Třída pro vytvoření klienta
+ */
 public class Client implements IConnectionLostHandler {
     private static final Logger logger = LoggerFactory.getLogger(Client.class);
     private Socket clientSocket;
@@ -27,6 +27,10 @@ public class Client implements IConnectionLostHandler {
         startConnection();
     }
 
+    /**
+     * @return Instanci klienta
+     * @throws IOException
+     */
     public static Client getInstance() throws IOException {
         if (instance == null) {
             instance = new Client();

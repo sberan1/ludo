@@ -10,6 +10,9 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Třída pro listenera
+ */
 public class Listener implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(Listener.class);
     private final List<MessageObserver> observers = new ArrayList<>();
@@ -17,6 +20,11 @@ public class Listener implements Runnable {
     private volatile boolean running = true;
     private final IConnectionLostHandler clh;
 
+    /**
+     * Konstruktor třídy
+     * @param inputStream
+     * @param handler
+     */
     public Listener(InputStream inputStream, IConnectionLostHandler handler) {
         this.inputStream = inputStream;
         this.clh = handler;

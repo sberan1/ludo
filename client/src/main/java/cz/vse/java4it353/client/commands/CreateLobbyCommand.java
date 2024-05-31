@@ -9,16 +9,23 @@ import org.slf4j.LoggerFactory;
 import java.util.Observable;
 import java.util.Observer;
 
+/**
+ * Příkaz pro vytvoření lobby
+ */
 public class CreateLobbyCommand extends Observable implements ICommand {
 
     private static final Logger log = LoggerFactory.getLogger(CreateLobbyCommand.class);
 
+    /**
+     * Konstruktor třídy
+     * @param o Observer
+     */
     public CreateLobbyCommand(Observer o) {
         addObserver(o);
     }
     @Override
     public String execute(String data) throws Exception {
-        log.info("Teď jsem v CreateLobbyCommand");
+        log.info("Započal CreateLobbyCommand");
         log.debug(data);
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(data);
@@ -26,6 +33,7 @@ public class CreateLobbyCommand extends Observable implements ICommand {
 
         setChanged();
         notifyObservers(lobby);
+        log.info("Končí CreateLobbyCommand");
         return null;
     }
 }

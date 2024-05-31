@@ -12,6 +12,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Třída pro definici lobby
+ */
 public class Lobby {
     private static final Logger log = LoggerFactory.getLogger(Lobby.class);
     private String name;
@@ -20,6 +23,13 @@ public class Lobby {
     private Board boardState;
     private boolean started;
 
+    /**
+     * Konstruktor třídy
+     * @param name Název lobby
+     * @param players Všichni hráči
+     * @param boardState Stav hrací desky
+     * @param started Začala hra?
+     */
     @JsonCreator
     public Lobby(
             @JsonProperty("name") String name,
@@ -32,6 +42,10 @@ public class Lobby {
         this.boardState = boardState != null ? boardState : new Board();
         this.started = started;
     }
+
+    /**
+     * Konstruktor třídy
+     */
     public Lobby() {}
     public String getName() {
         return name;
@@ -75,7 +89,7 @@ public class Lobby {
     }
     public boolean isPlayerInLobby(String name) {
         for (Player player: players) {
-            if(player != null && player.getName() == name) {
+            if(player != null && player.getName().equals(name)) {
                 return true;
             }
         }
