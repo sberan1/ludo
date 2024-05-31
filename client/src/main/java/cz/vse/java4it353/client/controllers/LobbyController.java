@@ -26,6 +26,9 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
+/**
+ * Controller pro ovládání okna lobby
+ */
 public class LobbyController implements MessageObserver, Observer {
     private static final Logger log = LoggerFactory.getLogger(LobbyController.class);
     private boolean isApplicationLoaded = false;
@@ -58,9 +61,16 @@ public class LobbyController implements MessageObserver, Observer {
     @FXML
     public Button joinLobbyButton;
 
+    /**
+     * Konstruktor LobbyController
+     */
     public LobbyController() {
 
     }
+
+    /**
+     * Inicializuje okno a nastavuje vše potřebné
+     */
     public void initialize() {
         try {
             client = Client.getInstance();

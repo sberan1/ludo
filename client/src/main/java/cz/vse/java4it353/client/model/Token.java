@@ -1,5 +1,8 @@
 package cz.vse.java4it353.client.model;
 
+/**
+ * Třída pro vytvoření tokenu (figurky)
+ */
 public class Token {
     private int position;
     public int move(int steps) {

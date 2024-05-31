@@ -8,8 +8,16 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+/**
+ * Příkaz pro synchronizaci lobbies
+ */
 public class SyncLobbiesCommand extends Observable implements ICommand {
     private static final Logger log = LoggerFactory.getLogger(SyncLobbiesCommand.class);
+
+    /**
+     * Konstruktor třídy
+     * @param o Observer
+     */
     public SyncLobbiesCommand(Observer o) {
         addObserver(o);
     }

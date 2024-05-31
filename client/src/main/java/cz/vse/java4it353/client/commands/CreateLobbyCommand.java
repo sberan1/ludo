@@ -9,10 +9,17 @@ import org.slf4j.LoggerFactory;
 import java.util.Observable;
 import java.util.Observer;
 
+/**
+ * Příkaz pro vytvoření lobby
+ */
 public class CreateLobbyCommand extends Observable implements ICommand {
 
     private static final Logger log = LoggerFactory.getLogger(CreateLobbyCommand.class);
 
+    /**
+     * Konstruktor třídy
+     * @param o Observer
+     */
     public CreateLobbyCommand(Observer o) {
         addObserver(o);
     }

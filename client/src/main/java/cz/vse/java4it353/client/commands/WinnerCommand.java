@@ -2,7 +2,6 @@ package cz.vse.java4it353.client.commands;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cz.vse.java4it353.client.model.Board;
 import cz.vse.java4it353.client.model.Player;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

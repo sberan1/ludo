@@ -4,10 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Třída pro vytvoření hráče
+ */
 public class Player {
     private String name;
     private String uuid;
     private List<Token> tokens = new ArrayList<>();
+
+    /**
+     * Konstruktor třídy
+     */
     public Player() {
         uuid = UUID.randomUUID().toString();
     }

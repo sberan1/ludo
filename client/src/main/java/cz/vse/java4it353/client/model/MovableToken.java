@@ -1,5 +1,8 @@
 package cz.vse.java4it353.client.model;
 
+/**
+ * Třída pro vytvoření tokenu (figurky), se kterým se dá pohnout
+ */
 public class MovableToken {
     private int position;
 

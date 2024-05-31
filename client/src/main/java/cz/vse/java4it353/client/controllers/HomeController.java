@@ -5,28 +5,22 @@ import cz.vse.java4it353.client.Main;
 import cz.vse.java4it353.client.MessageObserver;
 import cz.vse.java4it353.client.commands.CommandFactory;
 import cz.vse.java4it353.client.commands.ICommand;
-import cz.vse.java4it353.client.enums.ColorEnum;
 import cz.vse.java4it353.client.model.*;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.util.Pair;
@@ -38,7 +32,9 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
+/**
+ * Controller pro ovládání okna hlavní aplikace
+ */
 public class HomeController implements MessageObserver, Observer {
     private static final Logger log = LoggerFactory.getLogger(HomeController.class);
     public static Stage primaryStage;
@@ -215,6 +211,10 @@ public class HomeController implements MessageObserver, Observer {
     private ImageView z42;
     @FXML
     private ImageView z41;
+
+    /**
+     * Inicializuje controller a nastaví stav hry
+     */
     public void initialize() {
         try {
             client = Client.getInstance();
