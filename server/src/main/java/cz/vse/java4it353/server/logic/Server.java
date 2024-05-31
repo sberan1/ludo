@@ -45,11 +45,6 @@ public class Server {
                     Socket clientSocket = serverSocket.accept();
                     clientSockets.add(clientSocket);
                     log.info("Client connected: " + clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getInetAddress().getHostName() + "and added to clientSockets");
-                    for(Socket cs : clientSockets) {
-                        if(cs.equals(clientSocket)) {
-                            log.error("SuggarDenny");
-                        }
-                    }
                     clientHandlingPool.execute(() -> handleClient(clientSocket));
                 } catch (SocketException se) {
                     if (serverSocket.isClosed()) {
@@ -66,54 +61,31 @@ public class Server {
     }
 
     private void handleClient(Socket clientSocket) {
-        CommandFactory commandFactory = new CommandFactory(clientSocket, serverSocket, clientSockets); //TODO: transfer more data
+        CommandFactory commandFactory = new CommandFactory(clientSocket, serverSocket, clientSockets);
         try (BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
              PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
 
             String inputLine;
-                while ((inputLine = in.readLine()) != null) {
-                    log.debug("Received message: " + inputLine);
-                    String[] input = inputLine.split(" ", 2);
+            while ((inputLine = in.readLine()) != null) {
+                log.debug("Received message: " + inputLine);
+                String[] input = inputLine.split(" ", 2);
 
-                    if(input.length == 0) {
-                        log.error("Empty input");
-                        out.println("E Empty input");
-                        continue;
-                    }
-
-                    ICommand command = commandFactory.getCommand(input[0]);
-                    if (command != null) {
-                        try {
-                            String response;
-                            if (input.length == 1) {
-                                response = command.execute(null);
-                                log.info("Response: " + response);
-                                out.println(response);
-                            } else {
-                                response = command.execute(input[1]);
-                                log.info("Response: " + response);
-                                out.println(response);
-                            }
-                        } catch (Exception e) {
-                            log.error("Error executing command: " + e.getMessage());
-                            out.println("E " + e.getMessage());
-                        }
-                    } else {
-                        log.error("Unknown command.");
-                        out.println("E Unknown command");
-                    }
+                if (input.length == 0) {
+                    handleEmptyInput(out);
+                    continue;
                 }
+
+                ICommand command = commandFactory.getCommand(input[0]);
+                if (command != null) {
+                    executeCommand(input, command, out);
+                } else {
+                    handleUnknownCommand(out);
+                }
+            }
         } catch (IOException e) {
             log.error("Error handling client: " + e.getMessage());
-        }
-        finally {
-            try {
-                clientSocket.close();
-                clientSockets.remove(clientSocket);
-                log.info("Client disconnected: " + clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getInetAddress().getHostName() + "and removed from clientSockets");
-            } catch (IOException e) {
-                log.error("Error closing client socket: " + e.getMessage());
-            }
+        } finally {
+            closeClientSocket(clientSocket);
         }
     }
 
@@ -146,6 +118,42 @@ public class Server {
                 clientHandlingPool.shutdownNow();
                 log.error("Error shutting down client handling pool: " + ie.getMessage() + " - forcibly shutting down");
             }
+        }
+    }
+
+    private void handleEmptyInput(PrintWriter out) {
+        log.error("Empty input");
+        out.println("E Empty input");
+    }
+
+    private void handleUnknownCommand(PrintWriter out) {
+        log.error("Unknown command.");
+        out.println("E Unknown command");
+    }
+
+    private void executeCommand(String[] input, ICommand command, PrintWriter out) {
+        try {
+            String response;
+            if (input.length == 1) {
+                response = command.execute(null);
+            } else {
+                response = command.execute(input[1]);
+            }
+            log.info("Response: " + response);
+            out.println(response);
+        } catch (Exception e) {
+            log.error("Error executing command: " + e.getMessage());
+            out.println("E " + e.getMessage());
+        }
+    }
+
+    private void closeClientSocket(Socket clientSocket) {
+        try {
+            clientSocket.close();
+            clientSockets.remove(clientSocket);
+            log.info("Client disconnected: " + clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getInetAddress().getHostName() + "and removed from clientSockets");
+        } catch (IOException e) {
+            log.error("Error closing client socket: " + e.getMessage());
         }
     }
 }

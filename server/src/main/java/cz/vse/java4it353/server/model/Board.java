@@ -1,5 +1,6 @@
 package cz.vse.java4it353.server.model;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,7 +39,7 @@ public class Board {
     public int rollDice() {
         hasPlayerRolled = true;
         setDiceValue((int) (Math.random() * 6) + 1);
-        // NA TESTOVÁNÍ setDiceValue(6);
+        //setDiceValue(6);
         return getDiceValue();
     }
 
@@ -89,6 +90,27 @@ public class Board {
                 return;
             }
         }
+    }
+
+    public Player checkGameFinished() {
+        for (Player player : playerMap.values()) {
+            int[] lastFourPlaces = new int[4];
+            for (Token token : player.getTokens()) {
+                int position = token.getPosition();
+                if (position >= BOARD_SIZE - 4) {
+                    if (lastFourPlaces[position - (BOARD_SIZE - 4)] != 0) {
+                        return null; // Two tokens are on the same place
+                    }
+                    lastFourPlaces[position - (BOARD_SIZE - 4)] = 1;
+                } else {
+                    return null; // Token is not in the last four places
+                }
+            }
+            if (Arrays.stream(lastFourPlaces).sum() == 4) {
+                return player; // All tokens are in the last four places and no two tokens are on the same place
+            }
+        }
+        return null;
     }
 
 }
