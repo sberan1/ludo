@@ -97,11 +97,11 @@ public class Board {
             int[] lastFourPlaces = new int[4];
             for (Token token : player.getTokens()) {
                 int position = token.getPosition();
-                if (position >= BOARD_SIZE - 4) {
-                    if (lastFourPlaces[position - (BOARD_SIZE - 4)] != 0) {
-                        return null; // Two tokens are on the same place
+                if (position >= BOARD_SIZE - 3) {
+                    if (lastFourPlaces[position - (BOARD_SIZE - 3)] != 0) {
+                        return null;
                     }
-                    lastFourPlaces[position - (BOARD_SIZE - 4)] = 1;
+                    lastFourPlaces[position - (BOARD_SIZE - 3)] = 1;
                 } else {
                     return null; // Token is not in the last four places
                 }
