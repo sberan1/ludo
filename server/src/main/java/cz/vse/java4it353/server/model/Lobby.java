@@ -1,5 +1,8 @@
 package cz.vse.java4it353.server.model;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import cz.vse.java4it353.server.logic.Game;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,6 +18,7 @@ import java.util.Arrays;
 public class Lobby {
     private String name;
     private boolean isStarted = false;
+    ObjectMapper mapper = new ObjectMapper();
     /**
      * Maximum number of players in the lobby
      */
@@ -148,6 +152,28 @@ public class Lobby {
      */
     public Board getBoardState() {
         return boardState;
+    }
+
+    public void removePlayer(Player player){
+        for (int i = 0; i < players.length; i++) {
+            if (players[i] == player) {
+                players[i] = null;
+                break;
+            }
+        }
+    }
+
+    public void checkIfgameEnded() throws JsonProcessingException {
+        int playerCount = (int) java.util.Arrays.stream(this.getPlayers()).filter(java.util.Objects::nonNull).count();
+        if (playerCount <= 1) {
+            for(Player player : this.getPlayers()){
+                if(player != null){
+                    this.sendMessageToAllPlayers("W " + mapper.writeValueAsString(player));
+                    Game.getInstance().removeLobby(this);
+                }
+            }
+        }
+
     }
 
     /**

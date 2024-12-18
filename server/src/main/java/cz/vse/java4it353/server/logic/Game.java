@@ -163,6 +163,13 @@ public class Game {
         }
     }
 
+    public void removePlayer(String name) {
+        players.remove(name);
+    }
+
+    public void removeLobby(Lobby lobby) {
+        lobbies.remove(lobby.getName());
+    }
     /**
      * Notifies all players in the game
      *

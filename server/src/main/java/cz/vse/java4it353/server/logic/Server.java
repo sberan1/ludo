@@ -2,6 +2,8 @@ package cz.vse.java4it353.server.logic;
 
 import cz.vse.java4it353.server.Main;
 import cz.vse.java4it353.server.commands.ICommand;
+import cz.vse.java4it353.server.model.Lobby;
+import cz.vse.java4it353.server.model.Player;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -165,6 +167,19 @@ public class Server {
         try {
             clientSocket.close();
             clientSockets.remove(clientSocket);
+            Game g = Game.getInstance();
+            Player p = g.getPlayerBySocket(clientSocket);
+            g.removePlayer(p.getName());
+            Lobby l = g.getLobbyWithPlayer(clientSocket);
+            if (l == null) {
+                log.error("Player not in any lobby");
+                return;
+            }
+            else {
+                l.removePlayer(p);
+                l.sendMessageToAllPlayers("Q " + p.getName() + " has left the lobby");
+                l.checkIfgameEnded();
+            }
             log.info("Client disconnected: " + clientSocket.getInetAddress().getHostAddress() + ":" + clientSocket.getInetAddress().getHostName() + "and removed from clientSockets");
         } catch (IOException e) {
             log.error("Error closing client socket: " + e.getMessage());

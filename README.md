@@ -4,12 +4,12 @@ Hra Člověče, nezlob se je desková hra pro 2 až 4 hráče.
 Hraje se na hrací desce s 56 políčky, která je rozdělena do 4 barevných sektorů. 
 Hráči postupují podle hodů kostkou a snaží se dostat všemi svými figurkami do cíle.
 Hra je vhodná pro děti od 4 let.
-Odkaz na hru na GITHUB: https://github.com/sberan1/ludo
+<!-- Odkaz na hru na GITHUB: https://github.com/sberan1/ludo -->
 
 
 ## Spuštění hry
 1. Spustte server prikazem java -jar out/artifacts/server_jar/server.jar (server.jar je v tomto repozitari v adresari out/artifacts/server_jar)
-2. Spusste klienta prikazem java -jar out/artifacts/client_jar/client.jar (client.jar je v tomto repozitari v adresari out/artifacts/client_jar) (Momentalne nefunguje, nelze spustit JAR)
+2. Spustte klienta prikazem java -jar out/artifacts/client_jar/client.jar (client.jar je v tomto repozitari v adresari out/artifacts/client_jar) (Momentalne nefunguje, nelze spustit JAR)
 3. Zadejte jmeno pro login a potvrdte tlacitkem OK
 4. Pokud chcete vytvorit lobby, zadejte jeji nazev vpravo dole a kliknete na tlacitko Vytvorit lobby
 5. Zvolte si barvu pres RadioButton a kliknete na Zvolit barvu

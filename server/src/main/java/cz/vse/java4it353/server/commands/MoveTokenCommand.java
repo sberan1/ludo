@@ -42,7 +42,7 @@ public class MoveTokenCommand implements ICommand {
         lobby.sendMessageToAllPlayers("B " + json);
         Player winner = board.checkGameFinished();
         if (winner != null) {
-            lobby.sendMessageToAllPlayers("W " + winner.getName());
+            lobby.sendMessageToAllPlayers("W " + mapper.writeValueAsString(winner));
             game.removeLobby(lobby.getName());
         }
         return "B " + json;

@@ -244,6 +244,7 @@ public class LobbyController implements MessageObserver, Observer {
                     // Nastavení scény a zobrazení hlavního okna
                     primaryStage.close();
                     primaryStage.setTitle("Člověče, nezlob se! - " + Main.getPlayerName());
+                    HomeController.primaryStage = primaryStage;
                     primaryStage.setScene(scene);
                     primaryStage.show();
                     log.info("Spuštěna aplikace z aplikace.fxml se jménem " + Main.getPlayerName());
